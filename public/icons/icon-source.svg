@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Family Care">
+  <!-- Background: primary blue rounded square -->
+  <rect width="512" height="512" rx="112" ry="112" fill="#2563EB"/>
+  <!-- Soft white heart, centred, with breathing room for maskable safe zone (80% inner) -->
+  <path
+    d="M256 388
+       C 220 360, 144 312, 122 252
+       C 100 192, 138 132, 192 132
+       C 224 132, 246 152, 256 174
+       C 266 152, 288 132, 320 132
+       C 374 132, 412 192, 390 252
+       C 368 312, 292 360, 256 388 Z"
+    fill="#FFFFFF"/>
+</svg>
