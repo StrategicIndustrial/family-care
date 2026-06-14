@@ -1,26 +1,34 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Palette — brief §9 */
+  --color-primary: #2563EB;
+  --color-primary-light: #EFF6FF;
+  --color-warm-bg: #FFFBF5;
+  --color-success: #16A34A;
+  --color-warning: #D97706;
+  --color-text-dark: #1C1C1E;
+  --color-text-mid: #6B7280;
+  --color-line: #E5E7EB;
+
+  /* Typography */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #FFFFFF;
+  color: var(--color-text-dark);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Mum's view sets data-view="patient" on <html> to bump body type */
+html[data-view="patient"] body {
+  background: var(--color-warm-bg);
+  font-size: 20px;
 }
