@@ -4,7 +4,10 @@ import { updateSupabaseSession } from "@/lib/supabase/session";
 // Next 16 renamed the `middleware.ts` convention to `proxy.ts`. Behaviour is
 // unchanged — this runs on every matched request before route handling.
 export async function proxy(request: NextRequest) {
-  return updateSupabaseSession(request);
+  const response = await updateSupabaseSession(request);
+  // Expose pathname to Server Components — Next doesn't surface this otherwise.
+  response.headers.set("x-pathname", request.nextUrl.pathname);
+  return response;
 }
 
 // Skip static assets, image optimisation, the favicon, the manifest,
