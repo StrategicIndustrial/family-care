@@ -2,14 +2,15 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { ROLE_HOME, roleForPath } from "@/lib/roles";
+import { isPinUnlocked } from "@/lib/pin-session";
+import { PinScreen } from "@/components/auth/PinScreen";
+import { IdleWatcher } from "@/components/auth/IdleWatcher";
 
 // Server-side guard for every route under (protected):
 //   1. Require a Supabase session — else bounce to /
 //   2. Read role from profiles
 //   3. If the user is on a path that doesn't match their role, redirect them home
-//
-// PIN gating (patient + primary_carer) is layered on top in Step 6 — a client
-// component reads pin_enabled and renders the PIN screen before children.
+//   4. For patient/primary_carer with pin_enabled, render PinScreen until unlocked
 export default async function ProtectedLayout({
   children,
 }: {
@@ -22,7 +23,7 @@ export default async function ProtectedLayout({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, preferred_name")
+    .select("role, preferred_name, pin_enabled")
     .eq("id", user.id)
     .single();
 
@@ -31,8 +32,6 @@ export default async function ProtectedLayout({
     redirect("/?error=no_profile");
   }
 
-  // Use the x-pathname header set by the proxy to determine current path.
-  // Next 16 doesn't expose pathname in server components directly.
   const pathname = (await headers()).get("x-pathname") ?? "";
   const requestedRole = roleForPath(pathname);
 
@@ -40,5 +39,26 @@ export default async function ProtectedLayout({
     redirect(ROLE_HOME[profile.role]);
   }
 
-  return <>{children}</>;
+  const pinRequired =
+    (profile.role === "patient" || profile.role === "primary_carer") &&
+    profile.pin_enabled;
+
+  if (pinRequired) {
+    const unlocked = await isPinUnlocked(user.id);
+    if (!unlocked) {
+      return (
+        <PinScreen
+          preferredName={profile.preferred_name}
+          warm={profile.role === "patient"}
+        />
+      );
+    }
+  }
+
+  return (
+    <>
+      {children}
+      {pinRequired && <IdleWatcher />}
+    </>
+  );
 }
