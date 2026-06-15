@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 import { createTask } from "@/app/actions/tasks";
+import { TimeField } from "@/components/ui/TimeField";
 
 export const dynamic = "force-dynamic";
 
@@ -41,10 +42,8 @@ export default async function NewTaskPage() {
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Field name="due_date" label="Date"  type="date" />
-            <Field name="due_time" label="Time"  type="time" />
-          </div>
+          <Field name="due_date" label="Date" type="date" />
+          <TimeField name="due_time" label="Time" />
 
           <div>
             <label className="block text-sm font-medium mb-1">Assign to</label>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createAppointment } from "@/app/actions/appointments";
+import { TimeField } from "@/components/ui/TimeField";
 
 export const dynamic = "force-dynamic";
 
@@ -14,10 +15,8 @@ export default function NewAppointment() {
 
         <form action={createAppointment} className="space-y-4">
           <Field name="title" label="Title" required placeholder="Memory Clinic — Dr Nguyen" />
-          <div className="grid grid-cols-2 gap-3">
-            <Field name="appointment_date" label="Date" type="date" required />
-            <Field name="appointment_time" label="Time" type="time" />
-          </div>
+          <Field name="appointment_date" label="Date" type="date" required />
+          <TimeField name="appointment_time" label="Time" />
           <Field name="specialist" label="Specialist" />
           <Field name="location" label="Location" />
           <div>
