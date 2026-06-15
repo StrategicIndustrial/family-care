@@ -2,7 +2,7 @@ import { getSupabaseServerClient, getSupabaseServiceClient } from "@/lib/supabas
 import { Avatar } from "@/components/ui/Avatar";
 import { CheckInButtons } from "@/components/mum/CheckInButtons";
 import { MumMedicationCard } from "@/components/mum/MumMedicationCard";
-import { formatLongDate, formatTime } from "@/lib/format";
+import { formatLongDate, formatRelativeDate, formatTime } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -23,43 +23,61 @@ export default async function MumHome() {
   const admin = getSupabaseServiceClient();
 
   const todayIso = isoLocalDate(new Date());
+  const weekOutIso = isoLocalDate(addDays(new Date(), 7));
   const dayStartIso = new Date().toISOString().slice(0, 10) + "T00:00:00+08:00"; // Perth tz
   const dayStart = new Date(dayStartIso).toISOString();
 
-  const [{ data: profile }, { data: visits }, { data: medications }, { data: logsToday }, { data: checkinToday }] =
-    await Promise.all([
-      admin
-        .from("profiles")
-        .select("preferred_name")
-        .eq("id", user.id)
-        .single(),
-      admin
-        .from("tasks")
-        .select(`
-          id, title, due_time, assigned_to,
-          assignee:profiles!tasks_assigned_to_fkey ( preferred_name, avatar_url )
-        `)
-        .eq("task_type", "visit")
-        .eq("due_date", todayIso)
-        .order("due_time", { ascending: true, nullsFirst: false }),
-      admin
-        .from("medications")
-        .select("id, name, dosage, frequency")
-        .eq("is_active", true)
-        .order("created_at", { ascending: true }),
-      admin
-        .from("medication_logs")
-        .select("medication_id, taken_at")
-        .eq("logged_by", user.id)
-        .gte("taken_at", dayStart)
-        .order("taken_at", { ascending: false }),
-      admin
-        .from("checkins")
-        .select("id")
-        .gte("created_at", dayStart)
-        .limit(1)
-        .maybeSingle(),
-    ]);
+  const [
+    { data: profile },
+    { data: visits },
+    { data: upcomingVisits },
+    { data: medications },
+    { data: logsToday },
+    { data: checkinToday },
+  ] = await Promise.all([
+    admin
+      .from("profiles")
+      .select("preferred_name")
+      .eq("id", user.id)
+      .single(),
+    admin
+      .from("tasks")
+      .select(`
+        id, title, due_time, assigned_to,
+        assignee:profiles!tasks_assigned_to_fkey ( preferred_name, avatar_url )
+      `)
+      .eq("task_type", "visit")
+      .eq("due_date", todayIso)
+      .order("due_time", { ascending: true, nullsFirst: false }),
+    admin
+      .from("tasks")
+      .select(`
+        id, title, due_date, due_time,
+        assignee:profiles!tasks_assigned_to_fkey ( preferred_name, avatar_url )
+      `)
+      .eq("task_type", "visit")
+      .gt("due_date", todayIso)
+      .lte("due_date", weekOutIso)
+      .order("due_date", { ascending: true })
+      .order("due_time", { ascending: true, nullsFirst: false }),
+    admin
+      .from("medications")
+      .select("id, name, dosage, frequency")
+      .eq("is_active", true)
+      .order("created_at", { ascending: true }),
+    admin
+      .from("medication_logs")
+      .select("medication_id, taken_at")
+      .eq("logged_by", user.id)
+      .gte("taken_at", dayStart)
+      .order("taken_at", { ascending: false }),
+    admin
+      .from("checkins")
+      .select("id")
+      .gte("created_at", dayStart)
+      .limit(1)
+      .maybeSingle(),
+  ]);
 
   const preferredName = profile?.preferred_name ?? "Mum";
   const greeting = greetingForHour(new Date().getHours());
@@ -73,6 +91,7 @@ export default async function MumHome() {
   }
 
   const hasVisits = (visits?.length ?? 0) > 0;
+  const hasUpcoming = (upcomingVisits?.length ?? 0) > 0;
   const checkInDone = !!checkinToday;
 
   return (
@@ -116,6 +135,36 @@ export default async function MumHome() {
             <p className="text-lg text-text-mid">Just you and Dad today 💙</p>
           )}
         </section>
+
+        {/* ---------- Coming up this week ---------- */}
+        {hasUpcoming && (
+          <section className="space-y-3">
+            <h2 className="text-xl font-medium text-text-dark">Coming up</h2>
+            <ul className="space-y-2">
+              {upcomingVisits!.map((v) => {
+                const name = v.assignee?.preferred_name ?? "Someone";
+                const time = v.due_time ? formatTime(v.due_time) : null;
+                return (
+                  <li
+                    key={v.id}
+                    className="flex items-center gap-4 rounded-2xl bg-white border border-line p-4"
+                  >
+                    <Avatar name={name} url={v.assignee?.avatar_url ?? null} size="lg" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xl font-medium text-text-dark truncate">
+                        {name}
+                      </div>
+                      <div className="text-base text-text-mid">
+                        {formatRelativeDate(v.due_date!)}
+                        {time ? ` · ${time}` : ""}
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
 
         {/* ---------- Medications ---------- */}
         {(medications?.length ?? 0) > 0 && (
@@ -171,4 +220,10 @@ function isoLocalDate(d: Date): string {
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
+}
+
+function addDays(d: Date, n: number): Date {
+  const out = new Date(d);
+  out.setDate(out.getDate() + n);
+  return out;
 }
