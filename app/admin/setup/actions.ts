@@ -101,6 +101,27 @@ export async function clearUserPin(formData: FormData) {
   redirect("/admin/setup?ok=pin_cleared");
 }
 
+// Grant or revoke admin status on another user. Only an existing admin
+// can do this (requireAdmin guards the call), so promotion has to start
+// from someone who's already privileged.
+export async function setUserAdmin(formData: FormData) {
+  await requireAdmin();
+  const user_id = String(formData.get("user_id") ?? "");
+  const next = String(formData.get("next") ?? "") === "true";
+  if (!user_id) redirect("/admin/setup?error=missing_user");
+
+  const admin = getSupabaseServiceClient();
+  const { error } = await admin
+    .from("profiles")
+    .update({ is_admin: next })
+    .eq("id", user_id);
+  if (error) redirect("/admin/setup?error=update_failed");
+
+  revalidatePath("/admin/setup");
+  revalidatePath("/family/profile");
+  redirect(`/admin/setup?ok=${next ? "admin_granted" : "admin_revoked"}`);
+}
+
 // Edit an existing user's profile + role. Email itself isn't editable here —
 // changing email later requires a separate auth flow.
 export async function updateUserProfile(formData: FormData) {

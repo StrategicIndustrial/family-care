@@ -162,6 +162,7 @@ export type Database = {
           created_at: string;
           full_name: string;
           id: string;
+          is_admin: boolean;
           phone: string | null;
           pin_enabled: boolean;
           pin_hash: string | null;
@@ -173,6 +174,7 @@ export type Database = {
           created_at?: string;
           full_name: string;
           id: string;
+          is_admin?: boolean;
           phone?: string | null;
           pin_enabled?: boolean;
           pin_hash?: string | null;
@@ -184,6 +186,7 @@ export type Database = {
           created_at?: string;
           full_name?: string;
           id?: string;
+          is_admin?: boolean;
           phone?: string | null;
           pin_enabled?: boolean;
           pin_hash?: string | null;

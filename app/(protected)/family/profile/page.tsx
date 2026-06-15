@@ -14,7 +14,7 @@ export default async function FamilyProfile() {
   const admin = getSupabaseServiceClient();
   const { data: profile } = await admin
     .from("profiles")
-    .select("full_name, preferred_name, phone, role")
+    .select("full_name, preferred_name, phone, role, is_admin")
     .eq("id", user.id)
     .single();
 
@@ -70,19 +70,21 @@ export default async function FamilyProfile() {
           </p>
         </Card>
 
-        <Card className="space-y-2">
-          <div className="text-sm font-medium text-text-dark">Admin</div>
-          <p className="text-sm text-text-mid">
-            Manage users, set PINs, and edit Mum's medications. Requires the admin
-            password.
-          </p>
-          <Link
-            href="/admin/setup"
-            className="inline-block rounded-lg border border-line bg-white px-4 py-2 text-sm font-medium text-text-dark hover:border-primary"
-          >
-            Open admin setup →
-          </Link>
-        </Card>
+        {profile?.is_admin && (
+          <Card className="space-y-2">
+            <div className="text-sm font-medium text-text-dark">Admin</div>
+            <p className="text-sm text-text-mid">
+              Manage users, set PINs, and edit Mum's medications. Requires the
+              admin password.
+            </p>
+            <Link
+              href="/admin/setup"
+              className="inline-block rounded-lg border border-line bg-white px-4 py-2 text-sm font-medium text-text-dark hover:border-primary"
+            >
+              Open admin setup →
+            </Link>
+          </Card>
+        )}
       </div>
     </main>
   );

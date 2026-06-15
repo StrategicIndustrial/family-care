@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { isAdmin } from "@/lib/admin-session";
-import { getSupabaseServiceClient } from "@/lib/supabase/server";
+import { isAdmin, isAdminUser } from "@/lib/admin-session";
+import { getSupabaseServerClient, getSupabaseServiceClient } from "@/lib/supabase/server";
 import {
   loginAdmin,
   logoutAdmin,
@@ -10,6 +10,7 @@ import {
   updateUserProfile,
   sendSignInLink,
   deleteUser,
+  setUserAdmin,
   createMedication,
   toggleMedication,
 } from "./actions";
@@ -17,7 +18,7 @@ import {
 export const dynamic = "force-dynamic";
 
 const ERROR_MESSAGES: Record<string, string> = {
-  bad_password: "Incorrect password.",
+  bad_password: "Incorrect password — or you're not marked as an admin.",
   missing_field: "Please fill in all required fields.",
   invalid_role: "Pick a valid role.",
   email_taken: "That email is already in use.",
@@ -42,6 +43,8 @@ const OK_MESSAGES: Record<string, string> = {
   link_sent: "Sign-in link sent ✓",
   pin_set: "PIN saved ✓",
   pin_cleared: "PIN cleared ✓",
+  admin_granted: "Admin access granted ✓",
+  admin_revoked: "Admin access revoked ✓",
   med_created: "Medication added ✓",
   med_updated: "Medication updated ✓",
 };
@@ -52,14 +55,54 @@ export default async function AdminSetupPage({
   searchParams: Promise<{ error?: string; ok?: string }>;
 }) {
   const { error, ok } = await searchParams;
-  const authed = await isAdmin();
 
+  // Three-stage gate: must be signed in, must be is_admin, must have entered password.
+  const supabase = await getSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return (
+      <main className="flex-1 px-6 py-16 bg-zinc-50">
+        <div className="max-w-sm mx-auto space-y-6 text-center">
+          <Link href="/" className="inline-block text-sm text-primary">← Back to app</Link>
+          <h1 className="text-2xl font-semibold">Admin setup</h1>
+          <p className="text-text-mid">
+            Sign in to the app first, then come back here.
+          </p>
+          <Link href="/" className="inline-block rounded-lg bg-primary text-white px-4 py-3 font-medium">
+            Go to sign-in
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  const userIsAdmin = await isAdminUser();
+  if (!userIsAdmin) {
+    return (
+      <main className="flex-1 px-6 py-16 bg-zinc-50">
+        <div className="max-w-sm mx-auto space-y-6 text-center">
+          <Link href="/" className="inline-block text-sm text-primary">← Back to app</Link>
+          <h1 className="text-2xl font-semibold">Admin setup</h1>
+          <p className="text-text-mid">
+            You're signed in, but your account isn't marked as an admin.
+            Ask an existing admin to grant you access.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  const authed = await isAdmin();
   if (!authed) {
     return (
       <main className="flex-1 px-6 py-16 bg-zinc-50">
         <div className="max-w-sm mx-auto space-y-6">
           <Link href="/" className="inline-block text-sm text-primary">← Back to app</Link>
           <h1 className="text-2xl font-semibold">Admin setup</h1>
+          <p className="text-sm text-text-mid">
+            Signed in as an admin user. Enter the shared admin password to continue.
+          </p>
           <form action={loginAdmin} className="space-y-4">
             <input
               type="password"
@@ -73,7 +116,7 @@ export default async function AdminSetupPage({
               type="submit"
               className="w-full rounded-lg bg-primary text-white px-4 py-3 font-medium"
             >
-              Sign in
+              Continue
             </button>
             {error && ERROR_MESSAGES[error] && (
               <p className="text-sm text-warning text-center">{ERROR_MESSAGES[error]}</p>
@@ -90,7 +133,7 @@ export default async function AdminSetupPage({
   const [{ data: profiles }, { data: authUsers }, { data: meds }] = await Promise.all([
     admin
       .from("profiles")
-      .select("id, full_name, preferred_name, role, phone, pin_enabled")
+      .select("id, full_name, preferred_name, role, phone, pin_enabled, is_admin")
       .order("created_at", { ascending: true }),
     admin.auth.admin.listUsers({ page: 1, perPage: 200 }),
     admin
@@ -179,9 +222,14 @@ export default async function AdminSetupPage({
                 <li key={p.id} className="p-4 space-y-3">
                   <div className="flex items-baseline justify-between gap-3 flex-wrap">
                     <div className="min-w-0">
-                      <div className="font-medium">
+                      <div className="font-medium flex items-center gap-2">
                         {p.preferred_name}{" "}
-                        <span className="text-sm text-text-mid">({p.full_name})</span>
+                        <span className="text-sm text-text-mid font-normal">({p.full_name})</span>
+                        {p.is_admin && (
+                          <span className="inline-flex items-center rounded-full bg-primary-light text-primary px-2 py-0.5 text-xs font-medium">
+                            Admin
+                          </span>
+                        )}
                       </div>
                       <div className="text-sm text-text-mid">
                         {authInfo?.email ?? "(no auth row)"} · {p.role}
@@ -192,6 +240,16 @@ export default async function AdminSetupPage({
                     </div>
 
                     <div className="flex gap-2 flex-wrap">
+                      <form action={setUserAdmin}>
+                        <input type="hidden" name="user_id" value={p.id} />
+                        <input type="hidden" name="next" value={String(!p.is_admin)} />
+                        <button
+                          type="submit"
+                          className="rounded border border-line text-text-dark px-3 py-1.5 text-sm"
+                        >
+                          {p.is_admin ? "Revoke admin" : "Make admin"}
+                        </button>
+                      </form>
                       <form action={sendSignInLink}>
                         <input type="hidden" name="user_id" value={p.id} />
                         <button
