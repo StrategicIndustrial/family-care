@@ -81,7 +81,8 @@ export async function markTaskDoneAction(formData: FormData) {
   revalidatePath("/extended");
 }
 
-// Reassign — primary_carer + family.
+// Reassign — primary_carer + family. Redirects back to /family/tasks after
+// save, since updating assignment is usually a "save and back out" interaction.
 export async function reassignTask(formData: FormData) {
   await requireRole("primary_carer", "family");
   const taskId = String(formData.get("task_id") ?? "");
@@ -96,4 +97,8 @@ export async function reassignTask(formData: FormData) {
   if (error) throw new Error(`Could not reassign: ${error.message}`);
 
   revalidatePath("/family/tasks");
+  revalidatePath("/family");
+  revalidatePath("/dad");
+  revalidatePath("/extended");
+  redirect("/family/tasks");
 }

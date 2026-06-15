@@ -74,9 +74,13 @@ export default async function TaskDetail({
         </Card>
 
         {task.status !== "done" && (
-          <div className="pt-2">
+          <Card className="border-success/30 bg-success/5 space-y-3 mt-10">
+            <div className="text-sm font-medium text-text-dark">When the task is finished</div>
+            <p className="text-sm text-text-mid">
+              Marks this task complete and removes it from the active list.
+            </p>
             <MarkDoneButton taskId={task.id} />
-          </div>
+          </Card>
         )}
       </div>
     </main>

@@ -10,7 +10,7 @@ export function MarkDoneButton({ taskId }: { taskId: string }) {
     <form action={(fd) => startTransition(() => markTaskDoneAction(fd))}>
       <input type="hidden" name="task_id" value={taskId} />
       <Button type="submit" variant="success" disabled={pending}>
-        {pending ? "…" : "Done ✓"}
+        {pending ? "…" : "Mark task complete"}
       </Button>
     </form>
   );
@@ -42,7 +42,7 @@ export function ReassignSelect({ taskId, members, currentId }: {
         ))}
       </select>
       <Button type="submit" variant="secondary" disabled={pending}>
-        {pending ? "…" : "Save"}
+        {pending ? "…" : "Save & back"}
       </Button>
     </form>
   );
