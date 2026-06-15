@@ -24,7 +24,9 @@ export async function loginAdmin(formData: FormData) {
 
 export async function logoutAdmin() {
   await endAdminSession();
-  redirect("/admin/setup");
+  // Send them to the landing page rather than back to the password screen —
+  // ending the admin session usually means leaving admin behind entirely.
+  redirect("/");
 }
 
 // -------------------- users / profiles --------------------

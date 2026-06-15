@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { isAdmin } from "@/lib/admin-session";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 import {
@@ -57,6 +58,7 @@ export default async function AdminSetupPage({
     return (
       <main className="flex-1 px-6 py-16 bg-zinc-50">
         <div className="max-w-sm mx-auto space-y-6">
+          <Link href="/" className="inline-block text-sm text-primary">← Back to app</Link>
           <h1 className="text-2xl font-semibold">Admin setup</h1>
           <form action={loginAdmin} className="space-y-4">
             <input
@@ -108,11 +110,12 @@ export default async function AdminSetupPage({
   return (
     <main className="flex-1 px-6 py-10 bg-zinc-50">
       <div className="max-w-3xl mx-auto space-y-10">
+        <Link href="/" className="inline-block text-sm text-primary">← Back to app</Link>
         <header className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold">Admin setup</h1>
           <form action={logoutAdmin}>
             <button type="submit" className="text-sm text-text-mid underline">
-              Sign out
+              End admin session
             </button>
           </form>
         </header>
