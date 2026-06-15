@@ -29,7 +29,7 @@ export default async function FamilyTasks({
   const today = isoLocalDate(new Date());
   const weekOut = isoLocalDate(addDays(new Date(), 7));
 
-  let query = admin
+  let activeQuery = admin
     .from("tasks")
     .select(`
       id, title, task_type, due_date, due_time, status, assigned_to,
@@ -39,14 +39,34 @@ export default async function FamilyTasks({
     .order("due_date", { ascending: true, nullsFirst: false });
 
   if (filter === "week") {
-    query = query.gte("due_date", today).lte("due_date", weekOut);
+    activeQuery = activeQuery.gte("due_date", today).lte("due_date", weekOut);
   } else if (filter === "unclaimed") {
-    query = query.is("assigned_to", null);
+    activeQuery = activeQuery.is("assigned_to", null);
   } else if (filter === "mine") {
-    query = query.eq("assigned_to", user.id);
+    activeQuery = activeQuery.eq("assigned_to", user.id);
   }
 
-  const { data: tasks } = await query;
+  // Recently done — last 5, only on the default "All" view.
+  // (Filter views stay focused on what you asked for.)
+  const showRecentlyDone = filter === "all";
+  const recentlyDoneQuery = showRecentlyDone
+    ? admin
+        .from("tasks")
+        .select(`
+          id, title, task_type, due_date, due_time, status, assigned_to,
+          assignee:profiles!tasks_assigned_to_fkey ( preferred_name, avatar_url )
+        `)
+        .eq("status", "done")
+        .order("created_at", { ascending: false })
+        .limit(5)
+    : null;
+
+  const [{ data: tasks }, recentlyDone] = await Promise.all([
+    activeQuery,
+    recentlyDoneQuery
+      ? recentlyDoneQuery.then((r) => r.data)
+      : Promise.resolve(null),
+  ]);
 
   return (
     <main className="flex-1 px-6 py-8">
@@ -94,6 +114,29 @@ export default async function FamilyTasks({
             ))
           )}
         </div>
+
+        {showRecentlyDone && (recentlyDone?.length ?? 0) > 0 && (
+          <section className="space-y-2 pt-6 border-t border-line">
+            <h2 className="text-sm font-medium text-text-mid uppercase tracking-wide">
+              Recently done
+            </h2>
+            <div className="space-y-2 opacity-70">
+              {recentlyDone!.map((t) => (
+                <Link key={t.id} href={`/family/tasks/${t.id}`} className="block">
+                  <TaskCard
+                    title={t.title}
+                    taskType={t.task_type}
+                    dueDate={t.due_date}
+                    dueTime={t.due_time}
+                    status={t.status}
+                    assigneeName={t.assignee?.preferred_name ?? null}
+                    assigneeAvatarUrl={t.assignee?.avatar_url}
+                  />
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </main>
   );
