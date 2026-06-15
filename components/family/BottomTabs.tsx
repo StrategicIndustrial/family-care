@@ -6,16 +6,21 @@ import { clsx } from "@/lib/cx";
 
 type Tab = { href: string; label: string; icon: string };
 
-const TABS: Tab[] = [
-  { href: "/family",              label: "Home",         icon: "🏠" },
-  { href: "/family/tasks",        label: "Tasks",        icon: "📋" },
-  { href: "/family/appointments", label: "Appointments", icon: "📅" },
-  { href: "/family/updates",      label: "Updates",      icon: "💬" },
-  { href: "/family/profile",      label: "Profile",      icon: "👤" },
-];
+type Props = {
+  // Where the Home tab links. /family for sons; /dad for primary_carer.
+  homeHref: "/family" | "/dad";
+};
 
-export function BottomTabs() {
+export function BottomTabs({ homeHref }: Props) {
   const pathname = usePathname();
+
+  const TABS: Tab[] = [
+    { href: homeHref,               label: "Home",         icon: "🏠" },
+    { href: "/family/tasks",        label: "Tasks",        icon: "📋" },
+    { href: "/family/appointments", label: "Appointments", icon: "📅" },
+    { href: "/family/updates",      label: "Updates",      icon: "💬" },
+    { href: "/family/profile",      label: "Profile",      icon: "👤" },
+  ];
 
   return (
     <nav
@@ -25,10 +30,9 @@ export function BottomTabs() {
     >
       <ul className="grid grid-cols-5 max-w-2xl mx-auto">
         {TABS.map((tab) => {
-          const active =
-            tab.href === "/family"
-              ? pathname === "/family"
-              : pathname.startsWith(tab.href);
+          // Home tabs are exact match (so "/family" doesn't light up on every /family/* route).
+          const isHome = tab.href === "/family" || tab.href === "/dad";
+          const active = isHome ? pathname === tab.href : pathname.startsWith(tab.href);
           return (
             <li key={tab.href}>
               <Link

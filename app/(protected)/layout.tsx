@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
-import { ROLE_HOME, roleForPath } from "@/lib/roles";
+import { ROLE_HOME, allowedRolesForPath } from "@/lib/roles";
 import { isPinUnlocked } from "@/lib/pin-session";
 import { PinScreen } from "@/components/auth/PinScreen";
 import { IdleWatcher } from "@/components/auth/IdleWatcher";
@@ -33,9 +33,9 @@ export default async function ProtectedLayout({
   }
 
   const pathname = (await headers()).get("x-pathname") ?? "";
-  const requestedRole = roleForPath(pathname);
+  const allowed = allowedRolesForPath(pathname);
 
-  if (requestedRole && requestedRole !== profile.role) {
+  if (allowed && !allowed.includes(profile.role)) {
     redirect(ROLE_HOME[profile.role]);
   }
 

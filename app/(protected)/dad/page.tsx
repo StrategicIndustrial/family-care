@@ -1,6 +1,6 @@
+import Link from "next/link";
 import { getSupabaseServerClient, getSupabaseServiceClient } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { UpdatePost } from "@/components/shared/UpdatePost";
 import { TaskCard } from "@/components/shared/TaskCard";
@@ -118,56 +118,60 @@ export default async function DadHome() {
         )}
 
         {/* ---------- Today's tasks ---------- */}
-        <Section title="Today's tasks">
+        <Section title="Today's tasks" linkHref="/family/tasks" linkLabel="All tasks">
           {dadTaskCount === 0 ? (
             <EmptyHint>Nothing on your plate today.</EmptyHint>
           ) : (
             <div className="space-y-2">
               {dadTasks!.map((t) => (
-                <TaskCard
-                  key={t.id}
-                  title={t.title}
-                  taskType={t.task_type}
-                  dueDate={t.due_date}
-                  dueTime={t.due_time}
-                  status={t.status}
-                  action={<TaskDoneButton taskId={t.id} />}
-                />
+                <Link key={t.id} href={`/family/tasks/${t.id}`} className="block">
+                  <TaskCard
+                    title={t.title}
+                    taskType={t.task_type}
+                    dueDate={t.due_date}
+                    dueTime={t.due_time}
+                    status={t.status}
+                    action={<TaskDoneButton taskId={t.id} />}
+                  />
+                </Link>
               ))}
             </div>
           )}
         </Section>
 
         {/* ---------- This week ---------- */}
-        <Section title="This week">
+        <Section title="This week" linkHref="/family/tasks" linkLabel="All">
           {((weekTasks?.length ?? 0) + (weekAppts?.length ?? 0)) === 0 ? (
             <EmptyHint>A quiet week ahead.</EmptyHint>
           ) : (
             <div className="space-y-2">
               {(weekTasks ?? []).map((t) => (
-                <Card key={t.id} className="py-3">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <div>
-                      <div className="font-medium text-text-dark">{t.title}</div>
+                <Link key={t.id} href={`/family/tasks/${t.id}`} className="block">
+                  <Card className="py-3 hover:border-primary/40">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <div>
+                        <div className="font-medium text-text-dark">{t.title}</div>
+                        <div className="text-sm text-text-mid">
+                          {t.assignee?.preferred_name ?? "Unclaimed"}
+                        </div>
+                      </div>
                       <div className="text-sm text-text-mid">
-                        {t.assignee?.preferred_name ?? "Unclaimed"}
+                        {t.due_date ? formatShortDate(t.due_date) : "—"}
                       </div>
                     </div>
-                    <div className="text-sm text-text-mid">
-                      {t.due_date ? formatShortDate(t.due_date) : "—"}
-                    </div>
-                  </div>
-                </Card>
+                  </Card>
+                </Link>
               ))}
               {(weekAppts ?? []).map((a) => (
-                <AppointmentRow
-                  key={a.id}
-                  title={a.title}
-                  date={a.appointment_date}
-                  time={a.appointment_time}
-                  specialist={a.specialist}
-                  location={a.location}
-                />
+                <Link key={a.id} href={`/family/appointments/${a.id}`} className="block">
+                  <AppointmentRow
+                    title={a.title}
+                    date={a.appointment_date}
+                    time={a.appointment_time}
+                    specialist={a.specialist}
+                    location={a.location}
+                  />
+                </Link>
               ))}
             </div>
           )}
@@ -204,10 +208,24 @@ export default async function DadHome() {
 
 // ---------- helpers ----------
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title, children, linkHref, linkLabel,
+}: {
+  title: string;
+  children: React.ReactNode;
+  linkHref?: string;
+  linkLabel?: string;
+}) {
   return (
     <section className="space-y-3">
-      <h2 className="text-lg font-medium text-text-dark">{title}</h2>
+      <div className="flex items-baseline justify-between">
+        <h2 className="text-lg font-medium text-text-dark">{title}</h2>
+        {linkHref && linkLabel && (
+          <Link href={linkHref} className="text-sm text-primary underline-offset-4 hover:underline">
+            {linkLabel}
+          </Link>
+        )}
+      </div>
       {children}
     </section>
   );

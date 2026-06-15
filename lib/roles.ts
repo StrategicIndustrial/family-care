@@ -9,11 +9,13 @@ export const ROLE_HOME: Record<UserRole, string> = {
   extended: "/extended",
 };
 
-// Reverse lookup: given a path under (protected), which role owns it?
-export function roleForPath(pathname: string): UserRole | null {
-  if (pathname.startsWith("/mum")) return "patient";
-  if (pathname.startsWith("/dad")) return "primary_carer";
-  if (pathname.startsWith("/family")) return "family";
-  if (pathname.startsWith("/extended")) return "extended";
+// Given a path under (protected), return the set of roles allowed to view it.
+// /family/* is shared between primary_carer and family — Dad needs to see
+// the same coordination pages (tasks, appointments, updates) the sons use.
+export function allowedRolesForPath(pathname: string): UserRole[] | null {
+  if (pathname.startsWith("/mum")) return ["patient"];
+  if (pathname.startsWith("/dad")) return ["primary_carer"];
+  if (pathname.startsWith("/family")) return ["primary_carer", "family"];
+  if (pathname.startsWith("/extended")) return ["extended"];
   return null;
 }
