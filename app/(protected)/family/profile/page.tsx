@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getSupabaseServerClient, getSupabaseServiceClient } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/Card";
 import { updateOwnProfile } from "@/app/actions/profile";
@@ -67,6 +68,20 @@ export default async function FamilyProfile() {
           <p className="text-sm text-text-mid mt-1">
             Coming in Phase 2 — email and push alerts for flagged updates and new tasks.
           </p>
+        </Card>
+
+        <Card className="space-y-2">
+          <div className="text-sm font-medium text-text-dark">Admin</div>
+          <p className="text-sm text-text-mid">
+            Manage users, set PINs, and edit Mum's medications. Requires the admin
+            password.
+          </p>
+          <Link
+            href="/admin/setup"
+            className="inline-block rounded-lg border border-line bg-white px-4 py-2 text-sm font-medium text-text-dark hover:border-primary"
+          >
+            Open admin setup →
+          </Link>
         </Card>
       </div>
     </main>
