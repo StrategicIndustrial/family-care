@@ -99,6 +99,88 @@ export async function clearUserPin(formData: FormData) {
   redirect("/admin/setup?ok=pin_cleared");
 }
 
+// Edit an existing user's profile + role. Email itself isn't editable here —
+// changing email later requires a separate auth flow.
+export async function updateUserProfile(formData: FormData) {
+  await requireAdmin();
+
+  const user_id = String(formData.get("user_id") ?? "");
+  const full_name = String(formData.get("full_name") ?? "").trim();
+  const preferred_name = String(formData.get("preferred_name") ?? "").trim();
+  const role = String(formData.get("role") ?? "") as UserRole;
+  const phone_raw = String(formData.get("phone") ?? "").trim();
+  const phone = phone_raw === "" ? null : phone_raw;
+
+  if (!user_id || !full_name || !preferred_name) {
+    redirect("/admin/setup?error=missing_field");
+  }
+  if (!VALID_ROLES.includes(role)) {
+    redirect("/admin/setup?error=invalid_role");
+  }
+
+  const admin = getSupabaseServiceClient();
+
+  // Update auth user_metadata so future trigger runs (if any) stay aligned.
+  const { error: authErr } = await admin.auth.admin.updateUserById(user_id, {
+    user_metadata: { full_name, preferred_name, role },
+  });
+  if (authErr) redirect("/admin/setup?error=update_failed");
+
+  const { error } = await admin
+    .from("profiles")
+    .update({ full_name, preferred_name, role, phone })
+    .eq("id", user_id);
+
+  if (error) redirect("/admin/setup?error=update_failed");
+  revalidatePath("/admin/setup");
+  redirect("/admin/setup?ok=user_updated");
+}
+
+// Send a magic-link sign-in email to a user. Useful when they say they
+// didn't receive the original one (or never got prompted to sign in).
+export async function sendSignInLink(formData: FormData) {
+  await requireAdmin();
+  const user_id = String(formData.get("user_id") ?? "");
+  if (!user_id) redirect("/admin/setup?error=missing_user");
+
+  const admin = getSupabaseServiceClient();
+  const { data: lookup } = await admin.auth.admin.getUserById(user_id);
+  const email = lookup?.user?.email;
+  if (!email) redirect("/admin/setup?error=no_email");
+
+  // Use the regular signInWithOtp flow — it triggers Supabase's email
+  // template and rate-limits correctly. generateLink would return a URL
+  // but not always trigger the email on free-tier projects.
+  const { error } = await admin.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: false,
+      // Mirror the user-facing flow so they land in the right place.
+      emailRedirectTo: process.env.NEXT_PUBLIC_SITE_URL
+        ? `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
+        : undefined,
+    },
+  });
+  if (error) redirect("/admin/setup?error=send_failed");
+
+  redirect("/admin/setup?ok=link_sent");
+}
+
+// Delete a user — removes the auth row, which cascades into profiles via the
+// FK + CASCADE in the migration. Use with care.
+export async function deleteUser(formData: FormData) {
+  await requireAdmin();
+  const user_id = String(formData.get("user_id") ?? "");
+  if (!user_id) redirect("/admin/setup?error=missing_user");
+
+  const admin = getSupabaseServiceClient();
+  const { error } = await admin.auth.admin.deleteUser(user_id);
+  if (error) redirect("/admin/setup?error=delete_failed");
+
+  revalidatePath("/admin/setup");
+  redirect("/admin/setup?ok=user_deleted");
+}
+
 // -------------------- medications --------------------
 
 export async function createMedication(formData: FormData) {

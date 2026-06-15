@@ -6,6 +6,9 @@ import {
   createProfile,
   setUserPin,
   clearUserPin,
+  updateUserProfile,
+  sendSignInLink,
+  deleteUser,
   createMedication,
   toggleMedication,
 } from "./actions";
@@ -21,6 +24,10 @@ const ERROR_MESSAGES: Record<string, string> = {
   bad_pin: "PIN must be exactly 4 digits.",
   pin_save_failed: "Could not save the PIN.",
   pin_clear_failed: "Could not clear the PIN.",
+  update_failed: "Could not save the changes — try again.",
+  send_failed: "Could not send the sign-in link — try again in a moment.",
+  delete_failed: "Could not delete the user.",
+  no_email: "No email on file for this user.",
   missing_user: "User missing.",
   missing_med: "Medication missing.",
   med_create_failed: "Could not add medication.",
@@ -29,6 +36,9 @@ const ERROR_MESSAGES: Record<string, string> = {
 
 const OK_MESSAGES: Record<string, string> = {
   user_created: "User created ✓",
+  user_updated: "User updated ✓",
+  user_deleted: "User deleted ✓",
+  link_sent: "Sign-in link sent ✓",
   pin_set: "PIN saved ✓",
   pin_cleared: "PIN cleared ✓",
   med_created: "Medication added ✓",
@@ -73,16 +83,27 @@ export default async function AdminSetupPage({
   }
 
   const admin = getSupabaseServiceClient();
-  const [{ data: profiles }, { data: meds }] = await Promise.all([
+
+  // Profile rows + auth users (for email + email_confirmed_at) in parallel.
+  const [{ data: profiles }, { data: authUsers }, { data: meds }] = await Promise.all([
     admin
       .from("profiles")
-      .select("id, full_name, preferred_name, role, pin_enabled")
+      .select("id, full_name, preferred_name, role, phone, pin_enabled")
       .order("created_at", { ascending: true }),
+    admin.auth.admin.listUsers({ page: 1, perPage: 200 }),
     admin
       .from("medications")
       .select("id, name, dosage, frequency, is_active")
       .order("created_at", { ascending: true }),
   ]);
+
+  const authById = new Map<string, { email: string | undefined; lastSignInAt: string | null }>();
+  for (const u of authUsers?.users ?? []) {
+    authById.set(u.id, {
+      email: u.email,
+      lastSignInAt: u.last_sign_in_at ?? null,
+    });
+  }
 
   return (
     <main className="flex-1 px-6 py-10 bg-zinc-50">
@@ -131,6 +152,10 @@ export default async function AdminSetupPage({
             <button type="submit" className="rounded-lg bg-primary text-white px-4 py-2 font-medium">
               Create user
             </button>
+            <p className="text-xs text-text-mid pt-1">
+              Creating a user doesn't email them — use "Send sign-in link" on the
+              user row below when they're ready to log in.
+            </p>
           </form>
         </section>
 
@@ -138,52 +163,119 @@ export default async function AdminSetupPage({
         <section className="space-y-3">
           <h2 className="text-lg font-medium">Users ({profiles?.length ?? 0})</h2>
           <ul className="divide-y divide-line rounded-xl border border-line bg-white">
-            {(profiles ?? []).map((p) => (
-              <li key={p.id} className="p-4 space-y-3">
-                <div className="flex items-baseline justify-between">
-                  <div>
-                    <div className="font-medium">
-                      {p.preferred_name}{" "}
-                      <span className="text-sm text-text-mid">({p.full_name})</span>
+            {(profiles ?? []).map((p) => {
+              const authInfo = authById.get(p.id);
+              const lastSignIn = authInfo?.lastSignInAt
+                ? new Date(authInfo.lastSignInAt).toLocaleString("en-AU", {
+                    dateStyle: "medium", timeStyle: "short",
+                  })
+                : "never";
+              const needsPin = p.role === "patient" || p.role === "primary_carer";
+
+              return (
+                <li key={p.id} className="p-4 space-y-3">
+                  <div className="flex items-baseline justify-between gap-3 flex-wrap">
+                    <div className="min-w-0">
+                      <div className="font-medium">
+                        {p.preferred_name}{" "}
+                        <span className="text-sm text-text-mid">({p.full_name})</span>
+                      </div>
+                      <div className="text-sm text-text-mid">
+                        {authInfo?.email ?? "(no auth row)"} · {p.role}
+                      </div>
+                      <div className="text-xs text-text-mid mt-0.5">
+                        Last sign-in: {lastSignIn}
+                      </div>
                     </div>
-                    <div className="text-sm text-text-mid">{p.role}</div>
-                  </div>
-                </div>
-                {(p.role === "patient" || p.role === "primary_carer") && (
-                  <div className="flex items-center gap-3">
-                    <form action={setUserPin} className="flex items-center gap-2">
-                      <input type="hidden" name="user_id" value={p.id} />
-                      <input
-                        type="text"
-                        name="pin"
-                        inputMode="numeric"
-                        pattern="\d{4}"
-                        maxLength={4}
-                        placeholder="4-digit PIN"
-                        className="rounded border border-line px-3 py-1.5 text-sm w-32"
-                      />
-                      <button
-                        type="submit"
-                        className="rounded bg-primary text-white px-3 py-1.5 text-sm"
-                      >
-                        {p.pin_enabled ? "Reset PIN" : "Set PIN"}
-                      </button>
-                    </form>
-                    {p.pin_enabled && (
-                      <form action={clearUserPin}>
+
+                    <div className="flex gap-2 flex-wrap">
+                      <form action={sendSignInLink}>
                         <input type="hidden" name="user_id" value={p.id} />
                         <button
                           type="submit"
-                          className="rounded border border-line px-3 py-1.5 text-sm text-text-mid"
+                          className="rounded bg-primary text-white px-3 py-1.5 text-sm font-medium"
                         >
-                          Disable PIN
+                          Send sign-in link
                         </button>
                       </form>
-                    )}
+                      <form action={deleteUser}>
+                        <input type="hidden" name="user_id" value={p.id} />
+                        <button
+                          type="submit"
+                          className="rounded border border-warning/40 text-warning px-3 py-1.5 text-sm"
+                        >
+                          Delete
+                        </button>
+                      </form>
+                    </div>
                   </div>
-                )}
-              </li>
-            ))}
+
+                  {/* ----- PIN row (patient + primary_carer only) ----- */}
+                  {needsPin && (
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <form action={setUserPin} className="flex items-center gap-2">
+                        <input type="hidden" name="user_id" value={p.id} />
+                        <input
+                          type="text"
+                          name="pin"
+                          inputMode="numeric"
+                          pattern="\d{4}"
+                          maxLength={4}
+                          placeholder="4-digit PIN"
+                          className="rounded border border-line px-3 py-1.5 text-sm w-32"
+                        />
+                        <button
+                          type="submit"
+                          className="rounded bg-primary text-white px-3 py-1.5 text-sm"
+                        >
+                          {p.pin_enabled ? "Reset PIN" : "Set PIN"}
+                        </button>
+                      </form>
+                      {p.pin_enabled && (
+                        <form action={clearUserPin}>
+                          <input type="hidden" name="user_id" value={p.id} />
+                          <button
+                            type="submit"
+                            className="rounded border border-line px-3 py-1.5 text-sm text-text-mid"
+                          >
+                            Disable PIN
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  )}
+
+                  {/* ----- Edit details ----- */}
+                  <details className="text-sm">
+                    <summary className="cursor-pointer text-primary select-none">
+                      Edit details
+                    </summary>
+                    <form action={updateUserProfile} className="mt-3 space-y-3 rounded-lg bg-zinc-50 p-4">
+                      <input type="hidden" name="user_id" value={p.id} />
+                      <div className="grid grid-cols-2 gap-3">
+                        <Field name="full_name" label="Full name" defaultValue={p.full_name} required />
+                        <Field name="preferred_name" label="Preferred name" defaultValue={p.preferred_name} required />
+                      </div>
+                      <Field name="phone" label="Phone" type="tel" defaultValue={p.phone ?? ""} />
+                      <label className="block text-sm font-medium">Role</label>
+                      <select
+                        name="role"
+                        defaultValue={p.role}
+                        className="w-full rounded-lg border border-line bg-white px-3 py-2"
+                      >
+                        <option value="patient">patient</option>
+                        <option value="primary_carer">primary_carer</option>
+                        <option value="family">family</option>
+                        <option value="extended">extended</option>
+                      </select>
+                      <button type="submit" className="rounded-lg bg-primary text-white px-4 py-2 font-medium">
+                        Save changes
+                      </button>
+                    </form>
+                  </details>
+                </li>
+              );
+            })}
             {(!profiles || profiles.length === 0) && (
               <li className="p-4 text-sm text-text-mid">No users yet.</li>
             )}
@@ -240,13 +332,14 @@ export default async function AdminSetupPage({
 }
 
 function Field({
-  name, label, type = "text", required, placeholder,
+  name, label, type = "text", required, placeholder, defaultValue,
 }: {
   name: string;
   label: string;
   type?: string;
   required?: boolean;
   placeholder?: string;
+  defaultValue?: string;
 }) {
   return (
     <div>
@@ -259,6 +352,7 @@ function Field({
         type={type}
         required={required}
         placeholder={placeholder}
+        defaultValue={defaultValue}
         className="w-full rounded-lg border border-line bg-white px-3 py-2 text-base"
       />
     </div>
