@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# design export — regenerated via scripts/generate-design-export.mjs
+/design-export/
+/design-export.tar.gz
