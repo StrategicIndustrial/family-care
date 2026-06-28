@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en-AU" class="h-full">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Family Care — PIN entry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#2563EB',
+          'primary-light': '#EFF6FF',
+          'warm-bg': '#FFFBF5',
+          success: '#16A34A',
+          warning: '#D97706',
+          'text-dark': '#1C1C1E',
+          'text-mid': '#6B7280',
+          line: '#E5E7EB',
+        },
+        fontFamily: { sans: ['Inter','ui-sans-serif','system-ui','sans-serif'] },
+      },
+    },
+  };
+</script>
+<style>
+  html, body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+  body { font-size: 16px; line-height: 1.6; color: #1C1C1E; }
+</style>
+</head>
+<body class="min-h-full bg-warm-bg" data-view="pin">
+
+<main class="min-h-screen flex items-center justify-center px-6 py-10">
+  <div class="w-full max-w-sm text-center space-y-8">
+    <header class="space-y-2">
+      <h1 class="text-2xl font-semibold text-text-dark">Hi Mum</h1>
+      <p class="text-text-mid">Enter your 4-digit PIN to continue.</p>
+    </header>
+    <div class="flex justify-center gap-3">
+      <input type="text" maxlength="1" value="•" class="w-14 h-16 rounded-xl border-2 border-line bg-white text-center text-2xl font-semibold text-text-dark" /><input type="text" maxlength="1" value="•" class="w-14 h-16 rounded-xl border-2 border-line bg-white text-center text-2xl font-semibold text-text-dark" /><input type="text" maxlength="1" value="" class="w-14 h-16 rounded-xl border-2 border-line bg-white text-center text-2xl font-semibold text-text-dark" /><input type="text" maxlength="1" value="" class="w-14 h-16 rounded-xl border-2 border-line bg-white text-center text-2xl font-semibold text-text-dark" />
+    </div>
+  </div>
+</main>
+
+</body>
+</html>

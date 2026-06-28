@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en-AU" class="h-full">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Family Care — Family — Home</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#2563EB',
+          'primary-light': '#EFF6FF',
+          'warm-bg': '#FFFBF5',
+          success: '#16A34A',
+          warning: '#D97706',
+          'text-dark': '#1C1C1E',
+          'text-mid': '#6B7280',
+          line: '#E5E7EB',
+        },
+        fontFamily: { sans: ['Inter','ui-sans-serif','system-ui','sans-serif'] },
+      },
+    },
+  };
+</script>
+<style>
+  html, body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+  body { font-size: 16px; line-height: 1.6; color: #1C1C1E; }
+</style>
+</head>
+<body class="min-h-full bg-white" data-view="family-home">
+
+<main class="min-h-screen px-6 py-8 pb-24">
+  <div class="max-w-2xl mx-auto space-y-10">
+    <header>
+      <h1 class="text-2xl font-semibold text-text-dark">Welcome, Shawn</h1>
+      <p class="text-text-mid">Monday 15 June</p>
+    </header>
+
+    <section>
+      <div class="rounded-xl border border-line bg-white p-4 bg-green-50 border-green-200">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-sm text-text-mid">Mum's medication</div>
+            <div class="font-medium text-text-dark">Logged today ✓</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="space-y-3">
+      <div class="flex items-baseline justify-between">
+        <h2 class="text-lg font-medium text-text-dark">Up for grabs</h2>
+        <a class="text-sm text-primary">All</a>
+      </div>
+      <div class="space-y-2">
+        <div class="rounded-xl border border-line bg-white p-4 ">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <div class="flex items-center gap-2 mb-1"><span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium bg-zinc-100 text-text-mid">🚶 Visit</span></div>
+              <div class="font-medium text-text-dark">Sunday morning visit to Mum</div>
+              <div class="text-sm text-text-mid">Sun 21 Jun · 10:30 am</div>
+            </div>
+            <button class="rounded-lg bg-primary text-white px-4 py-3 font-medium">Claim it</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="space-y-3">
+      <div class="flex items-baseline justify-between">
+        <h2 class="text-lg font-medium text-text-dark">This week</h2>
+        <a class="text-sm text-primary">All tasks</a>
+      </div>
+      <div class="space-y-2">
+        <div class="rounded-xl border border-line bg-white p-4 py-3">
+          <div class="flex items-baseline justify-between gap-3">
+            <div>
+              <div class="font-medium text-text-dark">Badminton</div>
+              <div class="text-sm text-text-mid">Teneale</div>
+            </div>
+            <div class="text-sm text-text-mid">Wed, 17 June</div>
+          </div>
+        </div>
+        <div class="rounded-xl border border-line bg-white p-4 ">
+          <div class="flex items-baseline justify-between gap-3">
+            <div>
+              <div class="font-medium text-text-dark">Memory Clinic — Dr Nguyen</div>
+              <div class="text-sm text-text-mid">Dr Nguyen</div>
+            </div>
+            <div class="text-right shrink-0">
+              <div class="text-sm font-medium text-text-dark">Fri, 19 June</div>
+              <div class="text-xs text-text-mid">10:30 am</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="space-y-3">
+      <div class="flex items-baseline justify-between">
+        <h2 class="text-lg font-medium text-text-dark">Recent updates</h2>
+        <a class="text-sm text-primary">All</a>
+      </div>
+      <div class="space-y-3">
+        <div class="rounded-xl border border-line bg-white p-4 ">
+          <header class="flex items-start justify-between gap-3 mb-2">
+            <div class="flex items-center gap-3">
+              <span class="inline-flex items-center justify-center rounded-full font-medium h-8 w-8 text-xs" style="background:#BBF7D0;color:#166534">D</span>
+              <div>
+                <div class="font-medium text-text-dark text-sm">Dad</div>
+                <div class="text-xs text-text-mid">3 hours ago</div>
+              </div>
+            </div>
+          </header>
+          <p class="text-text-dark">Mum slept well — first uninterrupted night in a while. She enjoyed her oats this morning.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+<nav class="fixed bottom-0 inset-x-0 z-30 border-t border-line bg-white">
+    <ul class="grid grid-cols-5 max-w-2xl mx-auto"><li><a href="#" class="flex flex-col items-center gap-0.5 py-2.5 text-xs text-primary font-medium">
+      <span aria-hidden="true" class="text-xl leading-none">🏠</span>
+      <span>Home</span>
+    </a></li><li><a href="#" class="flex flex-col items-center gap-0.5 py-2.5 text-xs text-text-mid">
+      <span aria-hidden="true" class="text-xl leading-none">📋</span>
+      <span>Tasks</span>
+    </a></li><li><a href="#" class="flex flex-col items-center gap-0.5 py-2.5 text-xs text-text-mid">
+      <span aria-hidden="true" class="text-xl leading-none">📅</span>
+      <span>Appointments</span>
+    </a></li><li><a href="#" class="flex flex-col items-center gap-0.5 py-2.5 text-xs text-text-mid">
+      <span aria-hidden="true" class="text-xl leading-none">💬</span>
+      <span>Updates</span>
+    </a></li><li><a href="#" class="flex flex-col items-center gap-0.5 py-2.5 text-xs text-text-mid">
+      <span aria-hidden="true" class="text-xl leading-none">👤</span>
+      <span>Profile</span>
+    </a></li></ul>
+  </nav>
+</body>
+</html>

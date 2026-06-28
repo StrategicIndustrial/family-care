@@ -40,6 +40,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# design export — regenerated via scripts/generate-design-export.mjs
-/design-export/
+# design export bundle (regenerate via scripts/generate-design-export.mjs)
+# We commit /design-export so it's servable via raw.githubusercontent.com;
+# the tarball is just a local convenience.
 /design-export.tar.gz

@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en-AU" class="h-full">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Family Care — Admin setup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#2563EB',
+          'primary-light': '#EFF6FF',
+          'warm-bg': '#FFFBF5',
+          success: '#16A34A',
+          warning: '#D97706',
+          'text-dark': '#1C1C1E',
+          'text-mid': '#6B7280',
+          line: '#E5E7EB',
+        },
+        fontFamily: { sans: ['Inter','ui-sans-serif','system-ui','sans-serif'] },
+      },
+    },
+  };
+</script>
+<style>
+  html, body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+  body { font-size: 16px; line-height: 1.6; color: #1C1C1E; }
+</style>
+</head>
+<body class="min-h-full bg-white" data-view="admin-setup">
+
+<main class="min-h-screen px-6 py-10 bg-zinc-50">
+  <div class="max-w-3xl mx-auto space-y-10">
+    <a class="inline-block text-sm text-primary">← Back to app</a>
+    <header class="flex items-center justify-between">
+      <h1 class="text-2xl font-semibold">Admin setup</h1>
+      <button class="text-sm text-text-mid underline">End admin session</button>
+    </header>
+
+    <section class="space-y-3">
+      <h2 class="text-lg font-medium">Users (4)</h2>
+      <ul class="divide-y divide-line rounded-xl border border-line bg-white">
+        <li class="p-4 space-y-3">
+          <div class="flex items-baseline justify-between gap-3 flex-wrap">
+            <div>
+              <div class="font-medium flex items-center gap-2">
+                Shawn <span class="text-sm text-text-mid font-normal">(Shawn Cole)</span>
+                <span class="inline-flex items-center rounded-full bg-primary-light text-primary px-2 py-0.5 text-xs font-medium">Admin</span>
+              </div>
+              <div class="text-sm text-text-mid">shawn@example.com · family</div>
+              <div class="text-xs text-text-mid mt-0.5">Last sign-in: 15 Jun, 9:14 am</div>
+            </div>
+            <div class="flex gap-2 flex-wrap">
+              <button class="rounded border border-line text-text-dark px-3 py-1.5 text-sm">Revoke admin</button>
+              <button class="rounded bg-primary text-white px-3 py-1.5 text-sm font-medium">Send sign-in link</button>
+              <button class="rounded border border-amber-300 text-warning px-3 py-1.5 text-sm">Delete</button>
+            </div>
+          </div>
+        </li>
+        <li class="p-4 space-y-3">
+          <div class="flex items-baseline justify-between gap-3 flex-wrap">
+            <div>
+              <div class="font-medium flex items-center gap-2">
+                Dad <span class="text-sm text-text-mid font-normal">(David Cole)</span>
+              </div>
+              <div class="text-sm text-text-mid">dad@example.com · primary_carer</div>
+              <div class="text-xs text-text-mid mt-0.5">Last sign-in: 15 Jun, 10:01 am</div>
+            </div>
+            <div class="flex gap-2 flex-wrap">
+              <button class="rounded border border-line text-text-dark px-3 py-1.5 text-sm">Make admin</button>
+              <button class="rounded bg-primary text-white px-3 py-1.5 text-sm font-medium">Send sign-in link</button>
+              <button class="rounded border border-amber-300 text-warning px-3 py-1.5 text-sm">Delete</button>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 flex-wrap">
+            <div class="flex items-center gap-2">
+              <input value="••••" class="rounded border border-line px-3 py-1.5 text-sm w-32" />
+              <button class="rounded bg-primary text-white px-3 py-1.5 text-sm">Reset PIN</button>
+            </div>
+            <button class="rounded border border-line px-3 py-1.5 text-sm text-text-mid">Disable PIN</button>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-lg font-medium">Medications</h2>
+      <ul class="divide-y divide-line rounded-xl border border-line bg-white">
+        <li class="p-4 flex items-center justify-between">
+          <div>
+            <div class="font-medium">Donepezil <span class="text-sm text-text-mid">10mg</span></div>
+            <div class="text-sm text-text-mid">Once daily with breakfast</div>
+          </div>
+          <button class="rounded border border-line px-3 py-1.5 text-sm text-text-mid">Deactivate</button>
+        </li>
+        <li class="p-4 flex items-center justify-between">
+          <div>
+            <div class="font-medium">Memantine <span class="text-sm text-text-mid">5mg</span></div>
+            <div class="text-sm text-text-mid">Twice daily</div>
+          </div>
+          <button class="rounded border border-line px-3 py-1.5 text-sm text-text-mid">Deactivate</button>
+        </li>
+      </ul>
+    </section>
+  </div>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en-AU" class="h-full">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Family Care — Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#2563EB',
+          'primary-light': '#EFF6FF',
+          'warm-bg': '#FFFBF5',
+          success: '#16A34A',
+          warning: '#D97706',
+          'text-dark': '#1C1C1E',
+          'text-mid': '#6B7280',
+          line: '#E5E7EB',
+        },
+        fontFamily: { sans: ['Inter','ui-sans-serif','system-ui','sans-serif'] },
+      },
+    },
+  };
+</script>
+<style>
+  html, body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+  body { font-size: 16px; line-height: 1.6; color: #1C1C1E; }
+</style>
+</head>
+<body class="min-h-full bg-white" data-view="landing">
+
+<main class="min-h-screen flex items-center justify-center px-6 py-12">
+  <div class="w-full max-w-sm space-y-8">
+    <header class="text-center space-y-2">
+      <h1 class="text-3xl font-semibold text-text-dark">Family Care</h1>
+      <p class="text-text-mid">Sign in with your email — we'll send you a link.</p>
+    </header>
+    <form class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-text-dark mb-2">Email address</label>
+        <input type="email" value="you@example.com" class="w-full rounded-lg border border-line bg-white px-4 py-3 text-base text-text-dark" />
+      </div>
+      <button type="button" class="w-full rounded-lg bg-primary px-4 py-3 text-base font-medium text-white">Send me a sign-in link</button>
+    </form>
+  </div>
+</main>
+
+</body>
+</html>

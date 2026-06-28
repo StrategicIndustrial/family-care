@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en-AU" class="h-full">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Family Care — Family — Task detail</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#2563EB',
+          'primary-light': '#EFF6FF',
+          'warm-bg': '#FFFBF5',
+          success: '#16A34A',
+          warning: '#D97706',
+          'text-dark': '#1C1C1E',
+          'text-mid': '#6B7280',
+          line: '#E5E7EB',
+        },
+        fontFamily: { sans: ['Inter','ui-sans-serif','system-ui','sans-serif'] },
+      },
+    },
+  };
+</script>
+<style>
+  html, body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+  body { font-size: 16px; line-height: 1.6; color: #1C1C1E; }
+</style>
+</head>
+<body class="min-h-full bg-white" data-view="family-tasks-detail">
+
+<main class="min-h-screen px-6 py-8 pb-24">
+  <div class="max-w-md mx-auto space-y-6">
+    <a class="text-sm text-primary">← Back</a>
+
+    <div class="space-y-2">
+      <div class="flex items-center gap-2"><span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium bg-zinc-100 text-text-mid">🚶 Visit</span> <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium bg-primary-light text-primary">claimed</span></div>
+      <h1 class="text-2xl font-semibold text-text-dark">Badminton</h1>
+      <p class="text-text-mid">Wed 17 Jun · 11:00 am</p>
+    </div>
+
+    <div class="rounded-xl border border-line bg-white p-4 "><p class="text-text-dark">Pick up Mum at 10:30 — she likes to be early.</p></div>
+
+    <div class="rounded-xl border border-line bg-white p-4 space-y-3">
+      <div class="text-sm font-medium text-text-dark">Assigned to</div>
+      <form class="flex items-center gap-2">
+        <select class="rounded border border-line bg-white px-2 py-1.5 text-sm"><option>Teneale</option></select>
+        <button class="border border-line bg-white text-text-dark rounded-lg px-4 py-3 font-medium text-base">Save &amp; back</button>
+      </form>
+    </div>
+
+    <div class="rounded-xl border border-green-200 bg-green-50 p-4 space-y-3 mt-10">
+      <div class="text-sm font-medium text-text-dark">When the task is finished</div>
+      <p class="text-sm text-text-mid">Marks this task complete and removes it from the active list.</p>
+      <button class="rounded-lg bg-success text-white px-4 py-3 font-medium text-base">Mark task complete</button>
+    </div>
+  </div>
+</main>
+<nav class="fixed bottom-0 inset-x-0 z-30 border-t border-line bg-white">
+    <ul class="grid grid-cols-5 max-w-2xl mx-auto"><li><a href="#" class="flex flex-col items-center gap-0.5 py-2.5 text-xs text-text-mid">
+      <span aria-hidden="true" class="text-xl leading-none">🏠</span>
+      <span>Home</span>
+    </a></li><li><a href="#" class="flex flex-col items-center gap-0.5 py-2.5 text-xs text-primary font-medium">
+      <span aria-hidden="true" class="text-xl leading-none">📋</span>
+      <span>Tasks</span>
+    </a></li><li><a href="#" class="flex flex-col items-center gap-0.5 py-2.5 text-xs text-text-mid">
+      <span aria-hidden="true" class="text-xl leading-none">📅</span>
+      <span>Appointments</span>
+    </a></li><li><a href="#" class="flex flex-col items-center gap-0.5 py-2.5 text-xs text-text-mid">
+      <span aria-hidden="true" class="text-xl leading-none">💬</span>
+      <span>Updates</span>
+    </a></li><li><a href="#" class="flex flex-col items-center gap-0.5 py-2.5 text-xs text-text-mid">
+      <span aria-hidden="true" class="text-xl leading-none">👤</span>
+      <span>Profile</span>
+    </a></li></ul>
+  </nav>
+</body>
+</html>

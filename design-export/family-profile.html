@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en-AU" class="h-full">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Family Care — Family — Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#2563EB',
+          'primary-light': '#EFF6FF',
+          'warm-bg': '#FFFBF5',
+          success: '#16A34A',
+          warning: '#D97706',
+          'text-dark': '#1C1C1E',
+          'text-mid': '#6B7280',
+          line: '#E5E7EB',
+        },
+        fontFamily: { sans: ['Inter','ui-sans-serif','system-ui','sans-serif'] },
+      },
+    },
+  };
+</script>
+<style>
+  html, body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+  body { font-size: 16px; line-height: 1.6; color: #1C1C1E; }
+</style>
+</head>
+<body class="min-h-full bg-white" data-view="family-profile">
+
+<main class="min-h-screen px-6 py-8 pb-24">
+  <div class="max-w-md mx-auto space-y-6">
+    <header class="flex items-center justify-between">
+      <h1 class="text-2xl font-semibold text-text-dark">Profile</h1>
+      <button class="text-sm text-text-mid underline">Sign out</button>
+    </header>
+
+    <div class="rounded-xl border border-line bg-white p-4 space-y-1">
+      <div class="text-sm text-text-mid">Signed in as</div>
+      <div class="font-medium text-text-dark">shawn@example.com</div>
+      <div class="text-sm text-text-mid mt-1">Role: family</div>
+    </div>
+
+    <form class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium mb-1">Full name</label>
+        <input value="Shawn Cole" disabled class="w-full rounded-lg border border-line bg-zinc-50 px-3 py-2 text-base text-text-mid" />
+        <p class="text-xs text-text-mid mt-1">Changed by the admin via /admin/setup.</p>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Preferred name <span class="text-warning">*</span></label>
+        <input value="Shawn" class="w-full rounded-lg border border-line bg-white px-3 py-2 text-base" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Phone</label>
+        <input value="0412 345 678" type="tel" class="w-full rounded-lg border border-line bg-white px-3 py-2 text-base" />
+      </div>
+      <button class="rounded-lg bg-primary text-white px-4 py-3 font-medium text-base">Save changes</button>
+    </form>
+
+    <div class="rounded-xl border border-line bg-white p-4 ">
+      <div class="text-sm font-medium text-text-dark">Notification preferences</div>
+      <p class="text-sm text-text-mid mt-1">Coming in Phase 2 — email and push alerts for flagged updates and new tasks.</p>
+    </div>
+
+    <div class="rounded-xl border border-line bg-white p-4 space-y-2">
+      <div class="text-sm font-medium text-text-dark">Admin</div>
+      <p class="text-sm text-text-mid">Manage users, set PINs, and edit Mum's medications. Requires the admin password.</p>
+      <a class="inline-block rounded-lg border border-line bg-white px-4 py-2 text-sm font-medium text-text-dark">Open admin setup →</a>
+    </div>
+  </div>
+</main>
+<nav class="fixed bottom-0 inset-x-0 z-30 border-t border-line bg-white">
+    <ul class="grid grid-cols-5 max-w-2xl mx-auto"><li><a href="#" class="flex flex-col items-center gap-0.5 py-2.5 text-xs text-text-mid">
+      <span aria-hidden="true" class="text-xl leading-none">🏠</span>
+      <span>Home</span>
+    </a></li><li><a href="#" class="flex flex-col items-center gap-0.5 py-2.5 text-xs text-text-mid">
+      <span aria-hidden="true" class="text-xl leading-none">📋</span>
+      <span>Tasks</span>
+    </a></li><li><a href="#" class="flex flex-col items-center gap-0.5 py-2.5 text-xs text-text-mid">
+      <span aria-hidden="true" class="text-xl leading-none">📅</span>
+      <span>Appointments</span>
+    </a></li><li><a href="#" class="flex flex-col items-center gap-0.5 py-2.5 text-xs text-text-mid">
+      <span aria-hidden="true" class="text-xl leading-none">💬</span>
+      <span>Updates</span>
+    </a></li><li><a href="#" class="flex flex-col items-center gap-0.5 py-2.5 text-xs text-primary font-medium">
+      <span aria-hidden="true" class="text-xl leading-none">👤</span>
+      <span>Profile</span>
+    </a></li></ul>
+  </nav>
+</body>
+</html>
