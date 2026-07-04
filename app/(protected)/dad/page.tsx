@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { getSupabaseServerClient, getSupabaseServiceClient } from "@/lib/supabase/server";
-import { Card } from "@/components/ui/Card";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { UpdatePost } from "@/components/shared/UpdatePost";
 import { TaskCard } from "@/components/shared/TaskCard";
@@ -12,13 +11,6 @@ import { formatLongDate, formatShortDate } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
-// Dad's dashboard. Brief §6.2:
-//   1. Today header (date + single-line status)
-//   2. Medications (Mum's actives, with Taken ✓)
-//   3. Today's tasks (assigned to Dad, due today or overdue)
-//   4. This week (tasks + appointments next 7 days)
-//   5. Family updates feed (newest first, flagged at top)
-//   6. Quick flag button → composer
 export default async function DadHome() {
   const supabase = await getSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -68,7 +60,6 @@ export default async function DadHome() {
       .limit(20),
   ]);
 
-  // Determine if Mum's meds are "due" — i.e. any active med has no log today.
   const loggedMedIds = new Set((logsToday ?? []).map((l) => l.medication_id));
   const medsDue = (medications ?? []).filter((m) => !loggedMedIds.has(m.id)).length;
   const logByMed = new Map<string, string>();
@@ -76,30 +67,46 @@ export default async function DadHome() {
     if (!logByMed.has(l.medication_id)) logByMed.set(l.medication_id, l.taken_at);
   }
 
+  const preferredName = profile?.preferred_name ?? "Dad";
   const dadTaskCount = dadTasks?.length ?? 0;
-  const apptThisWeek = weekAppts?.length ?? 0;
-  const statusLine = [
-    `${dadTaskCount} task${dadTaskCount === 1 ? "" : "s"} today`,
-    `${apptThisWeek} appointment${apptThisWeek === 1 ? "" : "s"} this week`,
-    medsDue > 0 ? "Mum's meds due" : "Mum's meds logged",
-  ].join(" · ");
 
   return (
-    <main className="flex-1 px-6 py-8">
-      <div className="max-w-2xl mx-auto space-y-10">
-        {/* ---------- Header ---------- */}
-        <header className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold text-text-dark">
-              Hi {profile?.preferred_name ?? "Dad"}
-            </h1>
-            <p className="text-text-mid">{formatLongDate(new Date())}</p>
-            <p className="text-sm text-text-mid mt-1">{statusLine}</p>
+    <main className="flex-1 pb-24 anim-fade-in">
+      {/* -------------------- Sky header -------------------- */}
+      <header className="hdr-sky px-6 pt-12 pb-8 rounded-b-3xl">
+        <div className="max-w-2xl mx-auto flex items-center gap-4">
+          <div className="h-15 w-15 rounded-full bg-white/25 flex items-center justify-center text-2xl shrink-0" style={{ width: 60, height: 60 }} aria-hidden="true">
+            👨
           </div>
-          <SignOutButton />
-        </header>
+          <div className="flex-1 min-w-0">
+            <div className="text-[11px] font-extrabold text-white/80 uppercase tracking-wide">Significant Other</div>
+            <h1 className="text-2xl font-extrabold text-white mt-0.5">Hi, {preferredName} 👋</h1>
+            <p className="text-xs text-white/80 mt-0.5">{formatLongDate(new Date())}</p>
+          </div>
+          <div className="shrink-0 self-start"><SignOutButton /></div>
+        </div>
+      </header>
 
-        {/* ---------- Medications ---------- */}
+      <div className="max-w-2xl mx-auto px-4 mt-5 space-y-4">
+        {/* -------------------- Leanne's latest -------------------- */}
+        <div className="rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.06)] hdr-peach-soft">
+          <div className="text-[11px] font-extrabold text-white/85 uppercase tracking-wide mb-1">
+            Mum's latest
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="text-2xl" aria-hidden="true">😊</div>
+            <div>
+              <div className="text-base font-extrabold text-white">
+                {medsDue === 0 ? "Meds taken this morning" : "Waiting on morning meds"}
+              </div>
+              <div className="text-xs text-white/85">
+                {dadTaskCount} task{dadTaskCount === 1 ? "" : "s"} on your plate today
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* -------------------- Medications -------------------- */}
         {(medications?.length ?? 0) > 0 && (
           <Section title="Medications">
             <div className="space-y-3">
@@ -117,8 +124,8 @@ export default async function DadHome() {
           </Section>
         )}
 
-        {/* ---------- Today's tasks ---------- */}
-        <Section title="Today's tasks" linkHref="/family/tasks" linkLabel="All tasks">
+        {/* -------------------- Today's tasks -------------------- */}
+        <Section title="Today's tasks" linkHref="/family/tasks" linkLabel="All ›">
           {dadTaskCount === 0 ? (
             <EmptyHint>Nothing on your plate today.</EmptyHint>
           ) : (
@@ -139,27 +146,27 @@ export default async function DadHome() {
           )}
         </Section>
 
-        {/* ---------- This week ---------- */}
-        <Section title="This week" linkHref="/family/tasks" linkLabel="All">
+        {/* -------------------- This week -------------------- */}
+        <Section title="This week" linkHref="/family/tasks" linkLabel="All ›">
           {((weekTasks?.length ?? 0) + (weekAppts?.length ?? 0)) === 0 ? (
             <EmptyHint>A quiet week ahead.</EmptyHint>
           ) : (
             <div className="space-y-2">
               {(weekTasks ?? []).map((t) => (
                 <Link key={t.id} href={`/family/tasks/${t.id}`} className="block">
-                  <Card className="py-3 hover:border-primary/40">
+                  <div className="rounded-2xl bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.06)]">
                     <div className="flex items-baseline justify-between gap-3">
                       <div>
-                        <div className="font-medium text-text-dark">{t.title}</div>
-                        <div className="text-sm text-text-mid">
+                        <div className="font-extrabold text-text-dark">{t.title}</div>
+                        <div className="text-xs text-text-mid mt-0.5">
                           {t.assignee?.preferred_name ?? "Unclaimed"}
                         </div>
                       </div>
-                      <div className="text-sm text-text-mid">
+                      <div className="text-xs text-text-mid font-semibold">
                         {t.due_date ? formatShortDate(t.due_date) : "—"}
                       </div>
                     </div>
-                  </Card>
+                  </div>
                 </Link>
               ))}
               {(weekAppts ?? []).map((a) => (
@@ -177,12 +184,12 @@ export default async function DadHome() {
           )}
         </Section>
 
-        {/* ---------- Quick flag composer ---------- */}
+        {/* -------------------- Quick composer -------------------- */}
         <Section title="Let the family know">
           <UpdateComposer />
         </Section>
 
-        {/* ---------- Family updates feed ---------- */}
+        {/* -------------------- Feed -------------------- */}
         <Section title="Family updates">
           {(updates?.length ?? 0) === 0 ? (
             <EmptyHint>No updates yet.</EmptyHint>
@@ -206,8 +213,6 @@ export default async function DadHome() {
   );
 }
 
-// ---------- helpers ----------
-
 function Section({
   title, children, linkHref, linkLabel,
 }: {
@@ -217,11 +222,11 @@ function Section({
   linkLabel?: string;
 }) {
   return (
-    <section className="space-y-3">
-      <div className="flex items-baseline justify-between">
-        <h2 className="text-lg font-medium text-text-dark">{title}</h2>
+    <section className="space-y-2">
+      <div className="flex items-baseline justify-between px-2">
+        <h2 className="text-sm font-extrabold text-text-dark">{title}</h2>
         {linkHref && linkLabel && (
-          <Link href={linkHref} className="text-sm text-primary underline-offset-4 hover:underline">
+          <Link href={linkHref} className="text-xs text-sky-500 font-bold hover:underline">
             {linkLabel}
           </Link>
         )}
@@ -232,7 +237,11 @@ function Section({
 }
 
 function EmptyHint({ children }: { children: React.ReactNode }) {
-  return <p className="text-sm text-text-mid">{children}</p>;
+  return (
+    <div className="rounded-2xl bg-white p-4 text-center shadow-[0_2px_10px_rgba(0,0,0,0.06)]">
+      <p className="text-sm text-text-mid">{children}</p>
+    </div>
+  );
 }
 
 function isoLocalDate(d: Date): string {

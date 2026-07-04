@@ -9,24 +9,33 @@ type Props = {
   authorAvatarUrl?: string | null;
   createdAt: string;
   flagged?: boolean;
+  animate?: boolean;
 };
 
 export function UpdatePost({
-  body, authorName, authorAvatarUrl, createdAt, flagged,
+  body, authorName, authorAvatarUrl, createdAt, flagged, animate,
 }: Props) {
   return (
-    <Card className={flagged ? "border-warning/40 bg-warning/5" : undefined}>
-      <header className="flex items-start justify-between gap-3 mb-2">
-        <div className="flex items-center gap-3">
-          <Avatar name={authorName} url={authorAvatarUrl} size="sm" />
-          <div>
-            <div className="font-medium text-text-dark text-sm">{authorName}</div>
-            <div className="text-xs text-text-mid">{formatRelativeTime(createdAt)}</div>
-          </div>
+    <Card
+      className={[
+        "flex gap-3",
+        animate ? "anim-slide-up" : "",
+        flagged ? "border-2 border-peach-200" : "",
+      ].join(" ")}
+    >
+      <Avatar name={authorName} url={authorAvatarUrl} size="md" />
+      <div className="flex-1 min-w-0">
+        <div className="flex items-baseline justify-between gap-2 mb-1">
+          <div className="font-bold text-text-dark text-sm">{authorName}</div>
+          <div className="text-xs text-text-mid">{formatRelativeTime(createdAt)}</div>
         </div>
-        {flagged && <Badge tone="warning">📢 Urgent</Badge>}
-      </header>
-      <p className="text-text-dark whitespace-pre-wrap">{body}</p>
+        {flagged && (
+          <div className="mb-2">
+            <Badge tone="peach">📢 Urgent</Badge>
+          </div>
+        )}
+        <p className="text-sm text-sky-text leading-relaxed whitespace-pre-wrap">{body}</p>
+      </div>
     </Card>
   );
 }

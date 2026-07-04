@@ -6,9 +6,8 @@ type Props = {
   name: string;
   dosage: string;
   frequency?: string;
-  loggedAt?: string | null;     // ISO if logged today; null if pending
+  loggedAt?: string | null;
   onLog?: () => void;
-  // Mum's view uses oversized type — pass true for her dashboard.
   large?: boolean;
 };
 
@@ -16,39 +15,47 @@ export function MedicationCard({
   name, dosage, frequency, loggedAt, onLog, large = false,
 }: Props) {
   const confirmed = !!loggedAt;
-  const headingClass = large
-    ? "text-2xl font-semibold text-text-dark"
-    : "text-lg font-medium text-text-dark";
 
   return (
     <Card
-      className={
-        confirmed
-          ? "border-success/30 bg-success/5"
-          : large ? "bg-white shadow-sm" : undefined
-      }
+      accent={confirmed ? "sage" : undefined}
+      className={large ? "space-y-3" : "space-y-2"}
     >
-      <div className="space-y-1">
-        <div className={headingClass}>{name}</div>
-        <div className={large ? "text-lg text-text-mid" : "text-sm text-text-mid"}>
-          {dosage}
-          {frequency ? ` · ${frequency}` : ""}
+      <div className="flex items-start gap-3">
+        <div className={[
+          "shrink-0 rounded-2xl bg-peach-100 flex items-center justify-center",
+          large ? "h-14 w-14 text-3xl" : "h-11 w-11 text-xl",
+        ].join(" ")}
+          aria-hidden="true"
+        >
+          💊
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className={large ? "text-xl font-bold text-text-dark" : "text-base font-bold text-text-dark"}>
+            {name}
+          </div>
+          <div className={large ? "text-base text-text-mid" : "text-sm text-text-mid"}>
+            {dosage}{frequency ? ` · ${frequency}` : ""}
+          </div>
         </div>
       </div>
-      <div className="mt-4">
-        {confirmed ? (
-          <div className="flex items-center gap-2 text-success font-medium">
-            <span aria-hidden="true">✓</span>
-            <span>{large ? "Taken" : "Logged"} at {formatTime(toTimeString(loggedAt!))}</span>
-          </div>
-        ) : onLog ? (
-          large ? (
-            <Button variant="large" fullWidth onClick={onLog}>✓ I've taken this</Button>
-          ) : (
-            <Button variant="success" onClick={onLog}>Taken ✓</Button>
-          )
-        ) : null}
-      </div>
+      {confirmed ? (
+        <div className="flex items-center gap-2 text-sage-600 font-bold text-sm pl-14">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="7.5" stroke="#5da882" />
+            <path d="M4.5 8l2.5 2.5 4.5-5" stroke="#5da882" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          Taken at {formatTime(toTimeString(loggedAt!))}
+        </div>
+      ) : onLog ? (
+        large ? (
+          <Button variant="sage" size="lg" fullWidth onClick={onLog}>
+            ✓ I've taken this
+          </Button>
+        ) : (
+          <Button variant="sage" size="sm" onClick={onLog}>Taken ✓</Button>
+        )
+      ) : null}
     </Card>
   );
 }

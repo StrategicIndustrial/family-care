@@ -1,17 +1,18 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Nunito } from "next/font/google";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+const nunito = Nunito({
+  variable: "--font-nunito",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "Family Care",
-  description: "Coordinating care for Mum.",
+  description: "Keeping your family connected, one day at a time.",
   applicationName: "Family Care",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
@@ -32,7 +33,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#2563EB",
+  themeColor: "#7bbfa0",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -44,8 +45,8 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en-AU" className={`${inter.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
+    <html lang="en-AU" className={`${nunito.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col bg-cream">
         {children}
         <ServiceWorkerRegister />
       </body>

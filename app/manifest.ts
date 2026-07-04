@@ -4,13 +4,13 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Family Care",
     short_name: "Family Care",
-    description: "Coordinating care for Mum.",
+    description: "Keeping your family connected, one day at a time.",
     start_url: "/",
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#FFFBF5", // warm-bg, brief §9
-    theme_color: "#2563EB",      // primary
+    background_color: "#fdf6f0", // cream, from design
+    theme_color: "#7bbfa0",       // sage 500
     lang: "en-AU",
     icons: [
       { src: "/icons/icon-192.png",          sizes: "192x192", type: "image/png", purpose: "any" },

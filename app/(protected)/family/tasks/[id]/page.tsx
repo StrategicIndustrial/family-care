@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { MarkDoneButton, ReassignSelect } from "@/components/family/TaskActions";
 import { formatRelativeDate, formatTime } from "@/lib/format";
-import type { TaskKind } from "@/lib/supabase/types";
+import type { TaskKind, TaskStatus } from "@/lib/supabase/types";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +15,12 @@ const TYPE_LABEL: Record<TaskKind, string> = {
   transport:   "🚗 Transport",
   appointment: "📅 Appointment",
   other:       "✦ Task",
+};
+
+const STATUS_TONE: Record<TaskStatus, "sage" | "sky" | "neutral"> = {
+  open: "neutral",
+  claimed: "sky",
+  done: "sage",
 };
 
 export default async function TaskDetail({
@@ -36,36 +42,44 @@ export default async function TaskDetail({
   if (!task) notFound();
 
   return (
-    <main className="flex-1 px-6 py-8">
-      <div className="max-w-md mx-auto space-y-6">
-        <header className="flex items-center justify-between">
-          <Link href="/family/tasks" className="text-sm text-primary">← Back</Link>
-        </header>
-
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Badge>{TYPE_LABEL[task.task_type]}</Badge>
-            <Badge tone={task.status === "done" ? "success" : task.status === "claimed" ? "primary" : "neutral"}>
-              {task.status}
-            </Badge>
+    <main className="flex-1 pb-16 anim-fade-in">
+      <header className="hdr-sage px-6 pt-12 pb-8 rounded-b-3xl">
+        <div className="max-w-md mx-auto">
+          <Link href="/family/tasks" className="inline-block text-xs font-bold text-white/85 hover:text-white bg-white/15 hover:bg-white/25 px-3 py-1.5 rounded-full mb-3">
+            ← Back
+          </Link>
+          <div className="text-[11px] font-extrabold text-white/80 uppercase tracking-wide">
+            {task.assignee?.preferred_name ? `For ${task.assignee.preferred_name}` : "Unclaimed"}
           </div>
-          <h1 className="text-2xl font-semibold text-text-dark">{task.title}</h1>
-          {task.due_date && (
-            <p className="text-text-mid">
+          <h1 className="text-2xl font-extrabold text-white mt-1">{task.title}</h1>
+        </div>
+      </header>
+
+      <div className="max-w-md mx-auto px-4 mt-5 space-y-4">
+        <div className="flex items-center gap-2 px-2">
+          <Badge tone="sage">{TYPE_LABEL[task.task_type]}</Badge>
+          <Badge tone={STATUS_TONE[task.status]}>{task.status}</Badge>
+        </div>
+
+        {task.due_date && (
+          <Card className="text-center">
+            <div className="text-[10px] font-extrabold text-text-mid uppercase tracking-wide mb-1">Due</div>
+            <div className="font-extrabold text-text-dark">
               {formatRelativeDate(task.due_date)}
               {task.due_time ? ` · ${formatTime(task.due_time)}` : ""}
-            </p>
-          )}
-        </div>
+            </div>
+          </Card>
+        )}
 
         {task.description && (
           <Card>
-            <p className="text-text-dark whitespace-pre-wrap">{task.description}</p>
+            <div className="text-[10px] font-extrabold text-text-mid uppercase tracking-wide mb-1">Notes</div>
+            <p className="text-sm text-text-dark whitespace-pre-wrap leading-relaxed">{task.description}</p>
           </Card>
         )}
 
         <Card className="space-y-3">
-          <div className="text-sm font-medium text-text-dark">Assigned to</div>
+          <div className="text-sm font-extrabold text-text-dark">Assigned to</div>
           <ReassignSelect
             taskId={task.id}
             members={(members ?? []).map((m) => ({ id: m.id, preferred_name: m.preferred_name }))}
@@ -74,9 +88,9 @@ export default async function TaskDetail({
         </Card>
 
         {task.status !== "done" && (
-          <Card className="border-success/30 bg-success/5 space-y-3 mt-10">
-            <div className="text-sm font-medium text-text-dark">When the task is finished</div>
-            <p className="text-sm text-text-mid">
+          <Card accent="sage" className="space-y-3 mt-6">
+            <div className="text-sm font-extrabold text-text-dark">When the task is finished</div>
+            <p className="text-xs text-text-mid">
               Marks this task complete and removes it from the active list.
             </p>
             <MarkDoneButton taskId={task.id} />

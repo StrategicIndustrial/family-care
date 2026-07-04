@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 import { AppointmentRow } from "@/components/shared/AppointmentRow";
 import { Button } from "@/components/ui/Button";
+import { clsx } from "@/lib/cx";
 
 export const dynamic = "force-dynamic";
 
@@ -22,35 +23,48 @@ export default async function FamilyAppointments({
     .order("appointment_date", { ascending: !showHistory });
 
   return (
-    <main className="flex-1 px-6 py-8">
-      <div className="max-w-2xl mx-auto space-y-6">
-        <header className="flex items-baseline justify-between">
-          <h1 className="text-2xl font-semibold text-text-dark">Appointments</h1>
+    <main className="flex-1 pb-24 anim-fade-in">
+      <header className="hdr-peach px-6 pt-12 pb-8 rounded-b-3xl">
+        <div className="max-w-2xl mx-auto flex items-end justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-extrabold text-white">Appointments</h1>
+            <p className="text-sm text-white/85 mt-1">Scheduled and past</p>
+          </div>
           <Link href="/family/appointments/new">
-            <Button variant="primary">+ New</Button>
+            <Button variant="lavender" size="sm">+ New</Button>
           </Link>
-        </header>
+        </div>
+      </header>
 
-        <div className="flex gap-3 text-sm">
+      <div className="max-w-2xl mx-auto px-4 mt-5 space-y-4">
+        <nav className="flex gap-2" aria-label="Filter">
           <Link
             href="/family/appointments"
-            className={showHistory ? "text-text-mid underline" : "text-primary font-medium"}
+            className={clsx(
+              "rounded-full px-4 py-1.5 text-xs font-extrabold",
+              !showHistory ? "cta-peach text-white" : "bg-white text-text-mid",
+            )}
           >
             Upcoming
           </Link>
           <Link
             href="/family/appointments?history=1"
-            className={showHistory ? "text-primary font-medium" : "text-text-mid underline"}
+            className={clsx(
+              "rounded-full px-4 py-1.5 text-xs font-extrabold",
+              showHistory ? "cta-peach text-white" : "bg-white text-text-mid",
+            )}
           >
             History
           </Link>
-        </div>
+        </nav>
 
         <div className="space-y-2">
           {(appts?.length ?? 0) === 0 ? (
-            <p className="text-sm text-text-mid">
-              {showHistory ? "No past appointments." : "No appointments scheduled."}
-            </p>
+            <div className="rounded-2xl bg-white p-4 text-center shadow-[0_2px_10px_rgba(0,0,0,0.06)]">
+              <p className="text-sm text-text-mid">
+                {showHistory ? "No past appointments." : "No appointments scheduled."}
+              </p>
+            </div>
           ) : (
             appts!.map((a) => (
               <Link key={a.id} href={`/family/appointments/${a.id}`} className="block">

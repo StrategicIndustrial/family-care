@@ -1,18 +1,57 @@
 @import "tailwindcss";
 
 @theme {
-  /* Palette — brief §9 */
-  --color-primary: #2563EB;
-  --color-primary-light: #EFF6FF;
-  --color-warm-bg: #FFFBF5;
-  --color-success: #16A34A;
-  --color-warning: #D97706;
-  --color-text-dark: #1C1C1E;
-  --color-text-mid: #6B7280;
-  --color-line: #E5E7EB;
+  /* -------------------- Palette (from Family Care.dc.html) -------------------- */
+
+  /* Sage (primary — tasks, main CTAs) */
+  --color-sage-50:  #e8f5e9;
+  --color-sage-100: #a8d5b5;
+  --color-sage-500: #7bbfa0;
+  --color-sage-600: #5da882;
+  --color-sage-text:#4a6650;
+
+  /* Peach (warmth — Leanne, appointments) */
+  --color-peach-50:  #fdf6f2;
+  --color-peach-100: #fde8e0;
+  --color-peach-200: #f4c4a8;
+  --color-peach-300: #f9cfc2;
+  --color-peach-500: #e8956a;
+  --color-peach-600: #c07060;
+  --color-peach-text:#7a4a30;
+
+  /* Lavender (admin) */
+  --color-lavender-50:  #f5f0fa;
+  --color-lavender-100: #e8e0f5;
+  --color-lavender-200: #d0c5ea;
+  --color-lavender-400: #b09de0;
+  --color-lavender-500: #8a7bc0;
+  --color-lavender-600: #7b5ea7;
+  --color-lavender-text:#4a3d6e;
+
+  /* Sky (updates / feed) */
+  --color-sky-50:  #eef4f8;
+  --color-sky-100: #ddeef5;
+  --color-sky-200: #a8c8e0;
+  --color-sky-500: #6a9ec0;
+  --color-sky-text:#4a6070;
+
+  /* Neutrals / typography */
+  --color-cream: #fdf6f0;
+  --color-shell: #e8e4df;
+  --color-warm-bg: #fdf0ee;
+  --color-text-dark: #2d3a2e;
+  --color-text-mid: #8a9e8c;
+  --color-text-warm: #4a6650;
+  --color-line: #e5e0d8;
+
+  /* Compatibility aliases (legacy names used by earlier phase) */
+  --color-primary: var(--color-sage-600);
+  --color-primary-light: var(--color-sage-50);
+  --color-success: var(--color-sage-600);
+  --color-warning: var(--color-peach-500);
 
   /* Typography */
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
 }
 
 html {
@@ -20,15 +59,37 @@ html {
 }
 
 body {
-  background: #FFFFFF;
+  background: var(--color-cream);
   color: var(--color-text-dark);
   font-family: var(--font-sans);
   font-size: 16px;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
-/* Mum's view sets data-view="patient" on <html> to bump body type */
-html[data-view="patient"] body {
-  background: var(--color-warm-bg);
-  font-size: 20px;
+/* -------------------- Header gradient utilities --------------------
+   Applied via className="hdr-sage" etc — cleaner than inline gradients
+   and matches the four accent-per-context pattern used across the design. */
+.hdr-sage     { background: linear-gradient(135deg, #a8d5b5, #7bbfa0); }
+.hdr-peach    { background: linear-gradient(135deg, #f4c4a8, #e8956a); }
+.hdr-peach-soft { background: linear-gradient(135deg, #f9cfc2, #e8956a); }
+.hdr-lavender { background: linear-gradient(135deg, #d0c5ea, #b09de0); }
+.hdr-lavender-strong { background: linear-gradient(135deg, #d0c5ea, #8a7bc0); }
+.hdr-sky      { background: linear-gradient(135deg, #a8c8e0, #6a9ec0); }
+.hdr-cream    { background: linear-gradient(160deg, #fdf6f0 0%, #f0ebe4 100%); }
+
+/* CTA gradients */
+.cta-sage     { background: linear-gradient(135deg, #7bbfa0, #5da882); }
+.cta-peach    { background: linear-gradient(135deg, #f4c4a8, #e8956a); }
+.cta-lavender { background: linear-gradient(135deg, #b09de0, #8a7bc0); }
+
+/* -------------------- Animations -------------------- */
+@keyframes slideUp {
+  from { transform: translateY(40px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
 }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.anim-slide-up { animation: slideUp 0.35s ease; }
+.anim-fade-in  { animation: fadeIn 0.5s ease; }

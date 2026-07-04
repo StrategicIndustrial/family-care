@@ -24,15 +24,12 @@ export function SignInForm() {
       email: trimmed,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
-        shouldCreateUser: false, // accounts are created by admin only
+        shouldCreateUser: false,
       },
     });
 
     if (error) {
-      setStatus({
-        kind: "error",
-        message: "Something went wrong — try again in a moment.",
-      });
+      setStatus({ kind: "error", message: "Something went wrong — try again in a moment." });
     } else {
       setStatus({ kind: "sent", email: trimmed });
     }
@@ -40,20 +37,20 @@ export function SignInForm() {
 
   if (status.kind === "sent") {
     return (
-      <div className="rounded-xl border border-line bg-primary-light p-6 text-center space-y-2">
-        <p className="font-medium text-primary">Check your email</p>
+      <div className="rounded-2xl bg-sage-50 border-2 border-sage-100 p-5 text-center space-y-2">
+        <p className="font-extrabold text-sage-text">Check your email 💌</p>
         <p className="text-sm text-text-mid">
-          We sent a sign-in link to <span className="text-text-dark">{status.email}</span>.
-          You can close this tab once you tap the link.
+          We sent a sign-in link to <span className="text-text-dark font-bold">{status.email}</span>.<br />
+          Tap it in the same browser to continue.
         </p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="w-full flex flex-col gap-3">
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-text-dark mb-2">
+        <label htmlFor="email" className="block text-sm font-bold text-sage-text mb-2">
           Email address
         </label>
         <input
@@ -65,24 +62,24 @@ export function SignInForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={status.kind === "sending"}
-          className="w-full rounded-lg border border-line bg-white px-4 py-3 text-base text-text-dark
-                     focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20
-                     disabled:opacity-60"
-          placeholder="you@example.com"
+          className="w-full rounded-2xl border-2 border-sage-100 bg-white px-4 py-4 text-base text-text-dark
+                     focus:border-sage-500 focus:outline-none disabled:opacity-60 font-semibold"
+          placeholder="your@email.com"
         />
       </div>
 
       <button
         type="submit"
         disabled={status.kind === "sending"}
-        className="w-full rounded-lg bg-primary px-4 py-3 text-base font-medium text-white
-                   hover:bg-primary/90 disabled:opacity-60"
+        className="w-full rounded-2xl cta-sage text-white text-lg font-extrabold py-4
+                   shadow-[0_6px_20px_rgba(93,168,130,0.4)]
+                   disabled:opacity-60"
       >
         {status.kind === "sending" ? "Sending…" : "Send me a sign-in link"}
       </button>
 
       {status.kind === "error" && (
-        <p className="text-sm text-warning text-center">{status.message}</p>
+        <p className="text-sm text-peach-600 text-center font-bold">{status.message}</p>
       )}
     </form>
   );

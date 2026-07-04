@@ -14,7 +14,6 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
   no_email:        "We couldn't find an email on file. Ask the admin to update it.",
 };
 
-// Landing — magic link sign-in. If already authenticated, jump to role view.
 export default async function Home({
   searchParams,
 }: {
@@ -33,27 +32,42 @@ export default async function Home({
       .single();
 
     if (profile?.role) redirect(ROLE_HOME[profile.role]);
-    // Authed but no profile row — shouldn't happen post-trigger.
-    // Fall through to the sign-in screen.
   }
 
   const errorMessage = error ? AUTH_ERROR_MESSAGES[error] ?? "Sign-in failed — try again." : null;
 
   return (
-    <main className="flex-1 flex items-center justify-center px-6 py-12">
-      <div className="w-full max-w-sm space-y-8">
-        <header className="text-center space-y-2">
-          <h1 className="text-3xl font-semibold text-text-dark">Family Care</h1>
-          <p className="text-text-mid">Sign in with your email — we'll send you a link.</p>
-        </header>
+    <main className="flex-1 flex items-center justify-center hdr-cream anim-fade-in">
+      <div className="w-full max-w-sm px-8 py-14 flex flex-col items-center min-h-screen">
+        {/* Logo card */}
+        <div className="flex-1 flex flex-col items-center justify-center gap-7">
+          <div
+            className="h-22 w-22 rounded-3xl cta-sage flex items-center justify-center
+                       shadow-[0_8px_24px_rgba(123,191,160,0.35)]"
+            style={{ width: 88, height: 88 }}
+            aria-hidden="true"
+          >
+            <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+              <path d="M22 8C17.6 8 14 11.6 14 16c0 3.2 1.8 6 4.4 7.5C12.8 25.3 9 29.7 9 35h26c0-5.3-3.8-9.7-9.4-11.5C28.2 22 30 19.2 30 16c0-4.4-3.6-8-8-8z" fill="white" fillOpacity="0.9" />
+            </svg>
+          </div>
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-extrabold text-text-dark tracking-tight">Family Care</h1>
+            <p className="text-base text-text-mid leading-relaxed">
+              Keeping your family connected,<br />one day at a time.
+            </p>
+          </div>
+        </div>
 
         {errorMessage && (
-          <div className="rounded-lg border border-warning/30 bg-warning/10 text-warning text-sm px-4 py-3">
+          <div className="w-full mb-4 rounded-2xl border-2 border-peach-200 bg-peach-100 text-peach-600 text-sm font-bold px-4 py-3">
             {errorMessage}
           </div>
         )}
 
-        <SignInForm />
+        <div className="w-full">
+          <SignInForm />
+        </div>
       </div>
     </main>
   );

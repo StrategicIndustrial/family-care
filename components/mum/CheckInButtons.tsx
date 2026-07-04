@@ -8,10 +8,10 @@ type Props = {
   preferredName: string;
 };
 
-const OPTIONS: { mood: Mood; emoji: string; label: string }[] = [
-  { mood: "great",     emoji: "😊", label: "Great" },
-  { mood: "okay",      emoji: "🙂", label: "Okay" },
-  { mood: "not_great", emoji: "😔", label: "Not great" },
+const OPTIONS: { mood: Mood; emoji: string; label: string; bg: string }[] = [
+  { mood: "great",     emoji: "😊", label: "Great",     bg: "#e8f5e9" },
+  { mood: "okay",      emoji: "🙂", label: "Okay",      bg: "#fdf6f0" },
+  { mood: "not_great", emoji: "😔", label: "Not great", bg: "#fde8e0" },
 ];
 
 export function CheckInButtons({ preferredName }: Props) {
@@ -24,32 +24,32 @@ export function CheckInButtons({ preferredName }: Props) {
         await submitMumCheckin(mood);
         setSubmitted(true);
       } catch {
-        // Stay on the buttons — user can tap again.
+        /* stay on the buttons */
       }
     });
   }
 
   if (submitted) {
     return (
-      <p className="text-center text-2xl text-text-dark">
-        Thank you, {preferredName} 💙
-      </p>
+      <div className="rounded-2xl bg-white p-4 text-center shadow-[0_2px_10px_rgba(0,0,0,0.06)]">
+        <p className="text-lg text-text-dark font-extrabold">Thank you, {preferredName} 💙</p>
+      </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-      {OPTIONS.map(({ mood, emoji, label }) => (
+    <div className="grid grid-cols-3 gap-3">
+      {OPTIONS.map(({ mood, emoji, label, bg }) => (
         <button
           key={mood}
           type="button"
           disabled={pending}
           onClick={() => handleTap(mood)}
-          className="rounded-2xl bg-white border-2 border-line min-h-20
-                     text-xl font-medium text-text-dark
-                     hover:border-primary disabled:opacity-60
-                     focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40
-                     flex items-center justify-center gap-3"
+          className="rounded-2xl bg-white shadow-[0_2px_10px_rgba(0,0,0,0.06)] min-h-24
+                     flex flex-col items-center justify-center gap-1
+                     text-sm font-extrabold text-text-dark
+                     hover:brightness-95 disabled:opacity-60 transition-all"
+          style={{ background: bg }}
         >
           <span aria-hidden="true" className="text-3xl">{emoji}</span>
           {label}
