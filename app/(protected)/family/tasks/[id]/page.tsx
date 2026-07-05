@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { MarkDoneButton, ReassignSelect } from "@/components/family/TaskActions";
 import { formatRelativeDate, formatTime } from "@/lib/format";
+import { PRIORITY_COLOUR, PRIORITY_LABEL, VISIBILITY_COLOUR, VISIBILITY_LABEL } from "@/lib/task-priority";
 import type { TaskKind, TaskStatus } from "@/lib/supabase/types";
 
 export const dynamic = "force-dynamic";
@@ -34,7 +35,9 @@ export default async function TaskDetail({
   const [{ data: task }, { data: members }] = await Promise.all([
     admin.from("tasks").select(`
         id, title, description, task_type, due_date, due_time, status, assigned_to,
-        assignee:profiles!tasks_assigned_to_fkey ( id, preferred_name )
+        priority, visibility,
+        assignee:profiles!tasks_assigned_to_fkey ( id, preferred_name ),
+        creator:profiles!tasks_created_by_fkey ( preferred_name )
       `).eq("id", id).single(),
     admin.from("profiles").select("id, preferred_name").order("preferred_name", { ascending: true }),
   ]);
@@ -61,15 +64,34 @@ export default async function TaskDetail({
           <Badge tone={STATUS_TONE[task.status]}>{task.status}</Badge>
         </div>
 
-        {task.due_date && (
+        {/* 2x2 detail grid: Due / Priority / Assigned By / Visibility */}
+        <div className="grid grid-cols-2 gap-2">
           <Card className="text-center">
-            <div className="text-[10px] font-extrabold text-text-mid uppercase tracking-wide mb-1">Due</div>
-            <div className="font-extrabold text-text-dark">
-              {formatRelativeDate(task.due_date)}
-              {task.due_time ? ` · ${formatTime(task.due_time)}` : ""}
+            <div className="text-[10px] font-extrabold text-text-mid uppercase tracking-wide mb-1">Due Date</div>
+            <div className="font-extrabold text-text-dark text-sm">
+              {task.due_date
+                ? `${formatRelativeDate(task.due_date)}${task.due_time ? ` · ${formatTime(task.due_time)}` : ""}`
+                : "No due date"}
             </div>
           </Card>
-        )}
+          <Card className="text-center">
+            <div className="text-[10px] font-extrabold text-text-mid uppercase tracking-wide mb-1">Priority</div>
+            <div className="flex items-center justify-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: PRIORITY_COLOUR[task.priority] }} />
+              <span className="font-extrabold text-text-dark text-sm">{PRIORITY_LABEL[task.priority]}</span>
+            </div>
+          </Card>
+          <Card className="text-center">
+            <div className="text-[10px] font-extrabold text-text-mid uppercase tracking-wide mb-1">Assigned By</div>
+            <div className="font-extrabold text-text-dark text-sm">{task.creator?.preferred_name ?? "—"}</div>
+          </Card>
+          <Card className="text-center">
+            <div className="text-[10px] font-extrabold text-text-mid uppercase tracking-wide mb-1">Visibility</div>
+            <div className="font-extrabold text-sm" style={{ color: VISIBILITY_COLOUR[task.visibility] }}>
+              {VISIBILITY_LABEL[task.visibility]}
+            </div>
+          </Card>
+        </div>
 
         {task.description && (
           <Card>
@@ -87,15 +109,9 @@ export default async function TaskDetail({
           />
         </Card>
 
-        {task.status !== "done" && (
-          <Card accent="sage" className="space-y-3 mt-6">
-            <div className="text-sm font-extrabold text-text-dark">When the task is finished</div>
-            <p className="text-xs text-text-mid">
-              Marks this task complete and removes it from the active list.
-            </p>
-            <MarkDoneButton taskId={task.id} />
-          </Card>
-        )}
+        <Card accent={task.status === "done" ? "sage" : undefined} className="text-center">
+          <MarkDoneButton taskId={task.id} done={task.status === "done"} />
+        </Card>
       </div>
     </main>
   );

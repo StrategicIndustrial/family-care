@@ -22,6 +22,8 @@ export type Database = {
           appointment_time: string | null;
           created_at: string;
           created_by: string;
+          family_notes_after: string | null;
+          family_notes_before: string | null;
           id: string;
           location: string | null;
           notes_after: string | null;
@@ -34,6 +36,8 @@ export type Database = {
           appointment_time?: string | null;
           created_at?: string;
           created_by: string;
+          family_notes_after?: string | null;
+          family_notes_before?: string | null;
           id?: string;
           location?: string | null;
           notes_after?: string | null;
@@ -46,6 +50,8 @@ export type Database = {
           appointment_time?: string | null;
           created_at?: string;
           created_by?: string;
+          family_notes_after?: string | null;
+          family_notes_before?: string | null;
           id?: string;
           location?: string | null;
           notes_after?: string | null;
@@ -204,9 +210,11 @@ export type Database = {
           due_date: string | null;
           due_time: string | null;
           id: string;
+          priority: Database["public"]["Enums"]["task_priority"];
           status: Database["public"]["Enums"]["task_status"];
           task_type: Database["public"]["Enums"]["task_type"];
           title: string;
+          visibility: Database["public"]["Enums"]["task_visibility"];
         };
         Insert: {
           assigned_to?: string | null;
@@ -216,9 +224,11 @@ export type Database = {
           due_date?: string | null;
           due_time?: string | null;
           id?: string;
+          priority?: Database["public"]["Enums"]["task_priority"];
           status?: Database["public"]["Enums"]["task_status"];
           task_type: Database["public"]["Enums"]["task_type"];
           title: string;
+          visibility?: Database["public"]["Enums"]["task_visibility"];
         };
         Update: {
           assigned_to?: string | null;
@@ -228,9 +238,11 @@ export type Database = {
           due_date?: string | null;
           due_time?: string | null;
           id?: string;
+          priority?: Database["public"]["Enums"]["task_priority"];
           status?: Database["public"]["Enums"]["task_status"];
           task_type?: Database["public"]["Enums"]["task_type"];
           title?: string;
+          visibility?: Database["public"]["Enums"]["task_visibility"];
         };
         Relationships: [
           {
@@ -291,8 +303,10 @@ export type Database = {
     };
     Enums: {
       mood_type: "great" | "okay" | "not_great";
+      task_priority: "low" | "medium" | "high";
       task_status: "open" | "claimed" | "done";
       task_type: "visit" | "shopping" | "transport" | "appointment" | "other";
+      task_visibility: "everyone" | "family_only" | "private";
       user_role: "patient" | "primary_carer" | "family" | "extended";
     };
     CompositeTypes: { [_ in never]: never };
@@ -300,10 +314,12 @@ export type Database = {
 };
 
 // Convenience aliases used throughout the app.
-export type UserRole   = Database["public"]["Enums"]["user_role"];
-export type TaskStatus = Database["public"]["Enums"]["task_status"];
-export type TaskKind   = Database["public"]["Enums"]["task_type"];
-export type Mood       = Database["public"]["Enums"]["mood_type"];
+export type UserRole       = Database["public"]["Enums"]["user_role"];
+export type TaskStatus     = Database["public"]["Enums"]["task_status"];
+export type TaskKind       = Database["public"]["Enums"]["task_type"];
+export type TaskVisibility = Database["public"]["Enums"]["task_visibility"];
+export type TaskPriority   = Database["public"]["Enums"]["task_priority"];
+export type Mood           = Database["public"]["Enums"]["mood_type"];
 
 export type Profile        = Database["public"]["Tables"]["profiles"]["Row"];
 export type Update         = Database["public"]["Tables"]["updates"]["Row"];

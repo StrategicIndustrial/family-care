@@ -3,6 +3,7 @@ import { getSupabaseServerClient, getSupabaseServiceClient } from "@/lib/supabas
 import { TaskCard } from "@/components/shared/TaskCard";
 import { Button } from "@/components/ui/Button";
 import { clsx } from "@/lib/cx";
+import { PRIORITY_COLOUR } from "@/lib/task-priority";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,7 @@ export default async function FamilyTasks({
   const weekOut = isoLocalDate(addDays(new Date(), 7));
 
   const SELECT = `
-    id, title, task_type, due_date, due_time, status, assigned_to,
+    id, title, task_type, due_date, due_time, status, assigned_to, priority, visibility,
     assignee:profiles!tasks_assigned_to_fkey ( preferred_name ),
     creator:profiles!tasks_created_by_fkey ( preferred_name )
   `;
@@ -114,6 +115,7 @@ export default async function FamilyTasks({
                   status={t.status}
                   assignedFor={t.assignee?.preferred_name ?? (t.assigned_to ? null : "Unclaimed")}
                   assignedFrom={t.creator?.preferred_name}
+                  priorityColour={PRIORITY_COLOUR[t.priority]}
                 />
               </Link>
             ))
@@ -136,6 +138,7 @@ export default async function FamilyTasks({
                     status={t.status}
                     assignedFor={t.assignee?.preferred_name}
                     assignedFrom={t.creator?.preferred_name}
+                    priorityColour={PRIORITY_COLOUR[t.priority]}
                   />
                 </Link>
               ))}

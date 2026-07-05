@@ -30,6 +30,7 @@ export async function createAppointment(formData: FormData) {
   redirect("/family/appointments");
 }
 
+// Open notes — visible to everyone including Leanne.
 export async function updateAppointmentNotes(formData: FormData) {
   await requireRole("primary_carer", "family");
 
@@ -45,6 +46,33 @@ export async function updateAppointmentNotes(formData: FormData) {
     .update({
       notes_before: notes_before.trim() || null,
       notes_after: notes_after.trim() || null,
+    })
+    .eq("id", id);
+  if (error) throw new Error(`Could not save notes: ${error.message}`);
+
+  revalidatePath(`/family/appointments/${id}`);
+  revalidatePath("/family/appointments");
+}
+
+// Family-only notes — hidden from the person in care. Kept as a distinct
+// action (rather than folding into updateAppointmentNotes) so it can carry
+// its own guard if that's ever needed — e.g. restricting who can view them,
+// not just who can write them.
+export async function updateAppointmentFamilyNotes(formData: FormData) {
+  await requireRole("primary_carer", "family");
+
+  const id = String(formData.get("id") ?? "");
+  const family_notes_before = String(formData.get("family_notes_before") ?? "");
+  const family_notes_after = String(formData.get("family_notes_after") ?? "");
+
+  if (!id) throw new Error("Missing appointment.");
+
+  const supabase = await getSupabaseServerClient();
+  const { error } = await supabase
+    .from("appointments")
+    .update({
+      family_notes_before: family_notes_before.trim() || null,
+      family_notes_after: family_notes_after.trim() || null,
     })
     .eq("id", id);
   if (error) throw new Error(`Could not save notes: ${error.message}`);

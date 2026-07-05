@@ -4,9 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { requireRole, requireSession } from "@/lib/auth-helpers";
-import type { TaskKind } from "@/lib/supabase/types";
+import type { TaskKind, TaskPriority, TaskVisibility } from "@/lib/supabase/types";
 
 const VALID_TYPES: TaskKind[] = ["visit", "shopping", "transport", "appointment", "other"];
+const VALID_VISIBILITY: TaskVisibility[] = ["everyone", "family_only", "private"];
+const VALID_PRIORITY: TaskPriority[] = ["low", "medium", "high"];
 
 // Create a task — primary_carer + family.
 export async function createTask(formData: FormData) {
@@ -19,14 +21,18 @@ export async function createTask(formData: FormData) {
   const due_time = String(formData.get("due_time") ?? "").trim() || null;
   const assigned_to_raw = String(formData.get("assigned_to") ?? "").trim();
   const assigned_to = assigned_to_raw ? assigned_to_raw : null;
+  const visibility = (String(formData.get("visibility") ?? "family_only") || "family_only") as TaskVisibility;
+  const priority = (String(formData.get("priority") ?? "medium") || "medium") as TaskPriority;
 
   if (!title) throw new Error("Title is required.");
   if (!VALID_TYPES.includes(task_type)) throw new Error("Invalid task type.");
+  if (!VALID_VISIBILITY.includes(visibility)) throw new Error("Invalid visibility.");
+  if (!VALID_PRIORITY.includes(priority)) throw new Error("Invalid priority.");
 
   const supabase = await getSupabaseServerClient();
   const { error } = await supabase.from("tasks").insert({
     title, description, task_type, due_date, due_time,
-    assigned_to,
+    assigned_to, visibility, priority,
     created_by: ctx.userId,
     status: assigned_to ? "claimed" : "open",
   });
@@ -59,15 +65,18 @@ export async function claimTask(formData: FormData) {
   revalidatePath("/extended");
 }
 
-// Mark complete — assignee or a privileged role (primary_carer / family).
+// Toggle complete/incomplete — assignee or a privileged role (primary_carer / family).
+// "next" lets the task-detail page flip a done task back to claimed
+// ("Mark as Incomplete"), matching the design's toggle affordance.
 export async function markTaskDoneAction(formData: FormData) {
   const ctx = await requireSession();
   const taskId = String(formData.get("task_id") ?? "");
+  const next = String(formData.get("next") ?? "done") === "incomplete" ? "claimed" : "done";
   if (!taskId) throw new Error("Missing task.");
 
   // primary_carer + family can mark any task done; others only when assigned to self.
   const supabase = await getSupabaseServerClient();
-  let query = supabase.from("tasks").update({ status: "done" }).eq("id", taskId);
+  let query = supabase.from("tasks").update({ status: next }).eq("id", taskId);
   if (ctx.role !== "primary_carer" && ctx.role !== "family") {
     query = query.eq("assigned_to", ctx.userId);
   }
