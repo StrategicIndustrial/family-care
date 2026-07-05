@@ -21,10 +21,10 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get("type") as EmailOtpType | null;
   const next = searchParams.get("next");
 
-  // Surface any Supabase-side error (e.g. otp_expired) to the landing page.
+  // Surface any Supabase-side error (e.g. otp_expired) to the sign-in page.
   const supabaseError = searchParams.get("error");
   if (supabaseError) {
-    return NextResponse.redirect(`${origin}/?error=${supabaseError}`);
+    return NextResponse.redirect(`${origin}/signin?error=${supabaseError}`);
   }
 
   const supabase = await getSupabaseServerClient();
@@ -33,17 +33,17 @@ export async function GET(request: NextRequest) {
   if (token_hash && type) {
     const { data, error } = await supabase.auth.verifyOtp({ type, token_hash });
     if (error || !data?.user) {
-      return NextResponse.redirect(`${origin}/?error=verify_failed`);
+      return NextResponse.redirect(`${origin}/signin?error=verify_failed`);
     }
     userId = data.user.id;
   } else if (code) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (error || !data?.user) {
-      return NextResponse.redirect(`${origin}/?error=exchange_failed`);
+      return NextResponse.redirect(`${origin}/signin?error=exchange_failed`);
     }
     userId = data.user.id;
   } else {
-    return NextResponse.redirect(`${origin}/?error=missing_code`);
+    return NextResponse.redirect(`${origin}/signin?error=missing_code`);
   }
 
   // Look up role with service-role so we bypass any stale RLS-session binding.
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
 
   if (!profile?.role) {
     await supabase.auth.signOut();
-    return NextResponse.redirect(`${origin}/?error=no_profile`);
+    return NextResponse.redirect(`${origin}/signin?error=no_profile`);
   }
 
   const target = next && next.startsWith("/") ? next : ROLE_HOME[profile.role];
