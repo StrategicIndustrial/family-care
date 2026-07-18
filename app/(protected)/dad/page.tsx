@@ -7,6 +7,8 @@ import { AppointmentRow } from "@/components/shared/AppointmentRow";
 import { DadMedicationCard } from "@/components/dad/DadMedicationCard";
 import { TaskDoneButton } from "@/components/dad/TaskDoneButton";
 import { UpdateComposer } from "@/components/dad/UpdateComposer";
+import { MoodCheckIn } from "@/components/shared/MoodCheckIn";
+import { getCurrentPeriod, perthTodayDateStr } from "@/lib/checkin-window";
 import { formatLongDate, formatShortDate } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +23,9 @@ export default async function DadHome() {
   const weekOut = isoLocalDate(addDays(new Date(), 7));
   const dayStart = new Date(`${today}T00:00:00+08:00`).toISOString();
 
+  const period = getCurrentPeriod();
+  const perthToday = perthTodayDateStr();
+
   const [
     { data: profile },
     { data: medications },
@@ -29,6 +34,7 @@ export default async function DadHome() {
     { data: weekTasks },
     { data: weekAppts },
     { data: updates },
+    { data: existingCheckin },
   ] = await Promise.all([
     admin.from("profiles").select("preferred_name").eq("id", user.id).single(),
     admin.from("medications").select("id, name, dosage, frequency")
@@ -58,7 +64,12 @@ export default async function DadHome() {
       .order("is_flagged", { ascending: false })
       .order("created_at", { ascending: false })
       .limit(20),
+    period
+      ? admin.from("checkins").select("id").eq("user_id", user.id).eq("period", period).gte("created_at", `${perthToday}T00:00:00+08:00`).maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
+
+  const showCheckIn = period !== null && !existingCheckin;
 
   const loggedMedIds = new Set((logsToday ?? []).map((l) => l.medication_id));
   const medsDue = (medications ?? []).filter((m) => !loggedMedIds.has(m.id)).length;
@@ -88,6 +99,8 @@ export default async function DadHome() {
       </header>
 
       <div className="max-w-2xl mx-auto px-4 mt-5 space-y-4">
+        {showCheckIn && <MoodCheckIn preferredName={preferredName} period={period!} />}
+
         {/* -------------------- Leanne's latest -------------------- */}
         <div className="rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.06)] hdr-peach-soft">
           <div className="text-[11px] font-extrabold text-white/85 uppercase tracking-wide mb-1">

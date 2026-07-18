@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getSupabaseServerClient, getSupabaseServiceClient } from "@/lib/supabase/server";
 import { MumCareMedRow } from "@/components/mum/MumCareMedRow";
+import { MoodCheckIn } from "@/components/shared/MoodCheckIn";
+import { getCurrentPeriod, perthTodayDateStr } from "@/lib/checkin-window";
 import { formatLongDate, formatShortDate, formatTime } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +18,9 @@ export default async function MumHome() {
   const weekOutIso = isoLocalDate(addDays(new Date(), 7));
   const dayStart = new Date(`${todayIso}T00:00:00+08:00`).toISOString();
 
+  const period = getCurrentPeriod();
+  const perthToday = perthTodayDateStr();
+
   const [
     { data: profile },
     { data: medications },
@@ -23,6 +28,7 @@ export default async function MumHome() {
     { data: nextAppt },
     { data: myTasks },
     { data: recentUpdates },
+    { data: existingCheckin },
   ] = await Promise.all([
     admin.from("profiles").select("preferred_name").eq("id", user.id).single(),
     admin.from("medications").select("id, name, dosage, frequency")
@@ -49,7 +55,12 @@ export default async function MumHome() {
       .select(`id, body, created_at, author:profiles!updates_author_id_fkey ( preferred_name )`)
       .order("created_at", { ascending: false })
       .limit(2),
+    period
+      ? admin.from("checkins").select("id").eq("user_id", user.id).eq("period", period).gte("created_at", `${perthToday}T00:00:00+08:00`).maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
+
+  const showCheckIn = period !== null && !existingCheckin;
 
   const preferredName = profile?.preferred_name ?? "Leanne";
   const greeting = greetingForHour(new Date().getHours());
@@ -82,6 +93,8 @@ export default async function MumHome() {
       </header>
 
       <div className="px-3.5 mt-3.5 flex flex-col gap-2.5">
+        {showCheckIn && <MoodCheckIn preferredName={preferredName} period={period!} />}
+
         {/* -------------------- Today's care -------------------- */}
         <section className="bg-white rounded-[18px] p-4 shadow-[0_2px_10px_rgba(0,0,0,0.06)]">
           <h2 className="text-sm font-extrabold text-text-dark mb-2.5">Today&apos;s care</h2>

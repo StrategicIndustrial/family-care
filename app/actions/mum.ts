@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { getSupabaseServerClient, getSupabaseServiceClient } from "@/lib/supabase/server";
-import type { Mood } from "@/lib/supabase/types";
 
 async function requirePatient(): Promise<string> {
   const supabase = await getSupabaseServerClient();
@@ -33,18 +32,5 @@ export async function logMedicationByMum(medicationId: string): Promise<void> {
     .insert({ medication_id: medicationId, logged_by: userId });
 
   if (error) throw new Error(`Could not log medication: ${error.message}`);
-  revalidatePath("/mum");
-}
-
-// Mum's daily wellbeing check-in. Patient INSERT policy gates on role only.
-export async function submitMumCheckin(mood: Mood, note?: string): Promise<void> {
-  await requirePatient();
-  const supabase = await getSupabaseServerClient();
-
-  const { error } = await supabase
-    .from("checkins")
-    .insert({ mood, note: note?.trim() || null });
-
-  if (error) throw new Error(`Could not save check-in: ${error.message}`);
   revalidatePath("/mum");
 }

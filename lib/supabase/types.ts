@@ -297,20 +297,34 @@ export type Database = {
           id: string;
           mood: Database["public"]["Enums"]["mood_type"];
           note: string | null;
+          period: string;
+          user_id: string;
         };
         Insert: {
           created_at?: string;
           id?: string;
           mood: Database["public"]["Enums"]["mood_type"];
           note?: string | null;
+          period: string;
+          user_id: string;
         };
         Update: {
           created_at?: string;
           id?: string;
           mood?: Database["public"]["Enums"]["mood_type"];
           note?: string | null;
+          period?: string;
+          user_id?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "checkins_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       documents: {
         Row: {

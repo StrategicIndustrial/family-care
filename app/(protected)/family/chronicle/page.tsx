@@ -9,9 +9,15 @@ import { formatShortDate } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
-type EntryType = "note" | "observation" | "appointment";
+type EntryType = "note" | "observation" | "appointment" | "checkin";
 type TimeRange = "30d" | "90d" | "all";
 type TypeFilter = "all" | EntryType;
+
+const MOOD_LABELS: Record<string, { emoji: string; label: string }> = {
+  great: { emoji: "😊", label: "Great" },
+  okay: { emoji: "🙂", label: "Okay" },
+  not_great: { emoji: "😔", label: "Not great" },
+};
 
 const NOTE_CATEGORY_LABELS: Record<string, string> = {
   gp_note: "GP Note",
@@ -26,6 +32,7 @@ const ENTRY_META: Record<EntryType, { icon: string; label: string; badgeClass: s
   note:        { icon: "📄", label: "Note",        badgeClass: "bg-lavender-100 text-lavender-600" },
   observation: { icon: "🔎", label: "Observation",  badgeClass: "bg-sage-50 text-sage-text" },
   appointment: { icon: "📅", label: "Appointment",  badgeClass: "bg-peach-100 text-peach-600" },
+  checkin:     { icon: "💙", label: "Check-in",     badgeClass: "bg-peach-50 text-peach-600" },
 };
 
 const TYPE_FILTERS: { key: TypeFilter; label: string }[] = [
@@ -33,6 +40,7 @@ const TYPE_FILTERS: { key: TypeFilter; label: string }[] = [
   { key: "note",        label: "Notes" },
   { key: "observation", label: "Observations" },
   { key: "appointment", label: "Appointments" },
+  { key: "checkin",     label: "Check-ins" },
 ];
 
 const TIME_LABELS: { key: TimeRange; label: string }[] = [
@@ -71,7 +79,7 @@ export default async function ChroniclePage({
   const { type: typeFilter = "all", range = "30d" } = await searchParams;
 
   const admin = getSupabaseServiceClient();
-  const [notesR, obsR, apptR] = await Promise.all([
+  const [notesR, obsR, apptR, checkinR] = await Promise.all([
     admin
       .from("medical_notes")
       .select("id, category, date, body, document_id, created_at, author:profiles!medical_notes_author_id_fkey(preferred_name), document:documents(filename)")
@@ -88,6 +96,10 @@ export default async function ChroniclePage({
       .from("appointments")
       .select("id, title, appointment_date, specialist, location")
       .order("appointment_date", { ascending: false }),
+    admin
+      .from("checkins")
+      .select("id, mood, period, note, created_at, author:profiles!checkins_user_id_fkey(preferred_name)")
+      .order("created_at", { ascending: false }),
   ]);
 
   const noteEntries: ChronicleEntry[] = (notesR.data ?? []).map((n) => ({
@@ -119,7 +131,19 @@ export default async function ChroniclePage({
     subtitle: [a.specialist, a.location].filter(Boolean).join(" · ") || undefined,
   }));
 
-  const merged = [...noteEntries, ...obsEntries, ...apptEntries].sort((a, b) => b.sortDate.localeCompare(a.sortDate));
+  const checkinEntries: ChronicleEntry[] = (checkinR.data ?? []).map((c) => {
+    const mood = MOOD_LABELS[c.mood] ?? { emoji: "💭", label: c.mood };
+    return {
+      id: c.id,
+      type: "checkin",
+      sortDate: c.created_at.slice(0, 10),
+      title: `${mood.emoji} ${mood.label} (${c.period === "morning" ? "morning" : "evening"})`,
+      body: c.note ?? undefined,
+      authorName: c.author?.preferred_name,
+    };
+  });
+
+  const merged = [...noteEntries, ...obsEntries, ...apptEntries, ...checkinEntries].sort((a, b) => b.sortDate.localeCompare(a.sortDate));
 
   const cutoff = cutoffDate(range);
   const filtered = merged.filter((e) => {
