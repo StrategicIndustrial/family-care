@@ -95,7 +95,7 @@ export default async function FamilyHome() {
         {/* -------------------- Mum's status card -------------------- */}
         <div className="rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.06)] hdr-peach-soft">
           <div className="text-[11px] font-extrabold text-white/85 uppercase tracking-wide mb-1">
-            Leanne — Person in Care
+            Leanne's status
           </div>
           <div className="flex items-center gap-3 text-white">
             <div className="text-2xl" aria-hidden="true">😊</div>

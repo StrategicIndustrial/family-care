@@ -79,19 +79,21 @@ export default async function FamilyProfile({
         <section className="space-y-2">
           <h2 className="text-sm font-extrabold text-text-dark px-2">Family Members</h2>
           <div className="space-y-2">
-            {(familyMembers ?? []).map((m) => (
-              <div key={m.id}
-                   className="rounded-2xl bg-white p-4 flex items-center gap-3 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-                <Avatar name={m.preferred_name} size="lg" />
-                <div className="flex-1 min-w-0">
-                  <div className="font-extrabold text-text-dark">{m.preferred_name}</div>
-                  <div className="text-xs text-text-mid">
-                    {roleLabel(m.role)}
-                    {m.full_name && m.full_name !== m.preferred_name && ` · ${m.full_name}`}
+            {(familyMembers ?? []).map((m) => {
+              const label = roleLabel(m.role);
+              const showFullName = m.full_name && m.full_name !== m.preferred_name;
+              const subtitle = [label, showFullName ? m.full_name : null].filter(Boolean).join(" · ");
+              return (
+                <div key={m.id}
+                     className="rounded-2xl bg-white p-4 flex items-center gap-3 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+                  <Avatar name={m.preferred_name} size="lg" />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-extrabold text-text-dark">{m.preferred_name}</div>
+                    {subtitle && <div className="text-xs text-text-mid">{subtitle}</div>}
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 
@@ -232,7 +234,7 @@ export default async function FamilyProfile({
 
 function roleLabel(role: string): string {
   switch (role) {
-    case "patient": return "Person in Care";
+    case "patient": return "";
     case "primary_carer": return "Significant Other";
     case "family": return "Family Member";
     case "extended": return "Extended Family";

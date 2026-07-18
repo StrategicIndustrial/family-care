@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 const VISIBILITY_OPTIONS = [
   { value: "everyone",     icon: "👨‍👩‍👧",     label: "Everyone",         desc: "Visible to all, including Leanne" },
-  { value: "family_only",  icon: "👨‍👩‍👧‍👦", label: "Family only",       desc: "Hidden from Leanne (Person in Care)" },
+  { value: "family_only",  icon: "👨‍👩‍👧‍👦", label: "Family only",       desc: "Hidden from Leanne" },
   { value: "private",      icon: "🔒",         label: "Private",           desc: "Only visible to you" },
 ] as const;
 
@@ -76,7 +76,7 @@ export default async function NewTaskPage() {
               <option value="">Leave unassigned</option>
               {(members ?? []).map((m) => (
                 <option key={m.id} value={m.id}>
-                  {m.preferred_name} ({roleLabel(m.role)})
+                  {roleLabel(m.role) ? `${m.preferred_name} (${roleLabel(m.role)})` : m.preferred_name}
                 </option>
               ))}
             </select>
@@ -148,7 +148,7 @@ export default async function NewTaskPage() {
 
 function roleLabel(role: string): string {
   switch (role) {
-    case "patient": return "Person in Care";
+    case "patient": return "";
     case "primary_carer": return "Significant Other";
     case "family": return "Family";
     case "extended": return "Extended";

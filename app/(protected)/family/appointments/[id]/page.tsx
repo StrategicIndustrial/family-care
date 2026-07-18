@@ -121,7 +121,7 @@ export default async function AppointmentDetail({
           <details className="rounded-2xl bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)]" open>
             <summary className="cursor-pointer px-4 py-3 select-none">
               <span className="text-sm font-extrabold text-text-dark">🔒 Family-only notes</span>
-              <span className="block text-xs text-text-mid mt-0.5">Hidden from Leanne (Person in Care)</span>
+              <span className="block text-xs text-text-mid mt-0.5">Hidden from Leanne</span>
             </summary>
             <form action={updateAppointmentFamilyNotes} className="space-y-3 px-4 pb-4">
               <input type="hidden" name="id" value={appt.id} />
