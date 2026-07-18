@@ -30,7 +30,7 @@ type NoteCategory = (typeof NOTE_CATEGORIES)[number];
 // no signed-URL plumbing, at the cost of no live progress percentage.
 // next.config.ts raises the Server Action body limit to 25 MB to fit.
 export async function createMedicalNote(formData: FormData): Promise<void> {
-  const ctx = await requireRole("primary_carer", "family");
+  const ctx = await requireRole("primary_carer", "family", "patient");
 
   const category = String(formData.get("category") ?? "");
   if (!NOTE_CATEGORIES.includes(category as NoteCategory)) {
@@ -94,7 +94,7 @@ export async function createMedicalNote(formData: FormData): Promise<void> {
 // Short-lived signed URL so an attachment can be opened/downloaded —
 // never a public bucket URL. Role-gated the same way the table read is.
 export async function getDocumentDownloadUrl(documentId: string): Promise<string> {
-  await requireRole("primary_carer", "family");
+  await requireRole("primary_carer", "family", "patient");
 
   const admin = getSupabaseServiceClient();
   const { data: doc, error: docError } = await admin

@@ -70,9 +70,6 @@ export default async function MumHome() {
       <header className="hdr-peach-soft px-6 pt-12 pb-5 rounded-b-3xl">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <span className="inline-block bg-white/25 text-white text-[11px] font-extrabold px-3 py-0.5 rounded-full mb-2 tracking-wide">
-              Person in Care
-            </span>
             <h1 className="text-2xl font-extrabold text-white leading-tight">
               {greeting}, {preferredName} 💕
             </h1>

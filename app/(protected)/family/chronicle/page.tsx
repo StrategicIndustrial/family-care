@@ -66,7 +66,8 @@ export default async function ChroniclePage({
 }: {
   searchParams: Promise<{ type?: TypeFilter; range?: TimeRange }>;
 }) {
-  await requireRole("primary_carer", "family");
+  const ctx = await requireRole("primary_carer", "family", "patient");
+  const isPatient = ctx.role === "patient";
   const { type: typeFilter = "all", range = "30d" } = await searchParams;
 
   const admin = getSupabaseServiceClient();
@@ -75,10 +76,14 @@ export default async function ChroniclePage({
       .from("medical_notes")
       .select("id, category, date, body, document_id, created_at, author:profiles!medical_notes_author_id_fkey(preferred_name), document:documents(filename)")
       .order("date", { ascending: false }),
-    admin
-      .from("observations")
-      .select("id, type, body, created_at, author:profiles!observations_author_id_fkey(preferred_name)")
-      .order("created_at", { ascending: false }),
+    // Observations never surface to the patient — skip the query entirely
+    // rather than fetch-then-hide.
+    isPatient
+      ? Promise.resolve({ data: [] as { id: string; type: string; body: string; created_at: string; author: { preferred_name: string } | null }[] })
+      : admin
+          .from("observations")
+          .select("id, type, body, created_at, author:profiles!observations_author_id_fkey(preferred_name)")
+          .order("created_at", { ascending: false }),
     admin
       .from("appointments")
       .select("id, title, appointment_date, specialist, location")
@@ -131,7 +136,7 @@ export default async function ChroniclePage({
             <h1 className="text-2xl font-extrabold text-white">Chronicle</h1>
             <p className="text-sm text-white/85 mt-1">Clinical timeline</p>
           </div>
-          <ExportButton />
+          {!isPatient && <ExportButton />}
         </div>
       </header>
 
@@ -140,7 +145,7 @@ export default async function ChroniclePage({
 
         <div className="flex flex-col gap-3">
           <nav className="flex gap-2 flex-wrap" aria-label="Entry type filter">
-            {TYPE_FILTERS.map(({ key, label }) => (
+            {TYPE_FILTERS.filter((f) => !isPatient || f.key !== "observation").map(({ key, label }) => (
               <a
                 key={key}
                 href={`/family/chronicle?type=${key}&range=${range}`}
@@ -169,7 +174,7 @@ export default async function ChroniclePage({
           </nav>
         </div>
 
-        <ChronicleInsights />
+        {!isPatient && <ChronicleInsights />}
 
         {filtered.length === 0 ? (
           <div className="rounded-2xl bg-white p-6 text-center shadow-[0_2px_10px_rgba(0,0,0,0.06)]">
