@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { isAdmin, isAdminUser } from "@/lib/admin-session";
 import { getSupabaseServerClient, getSupabaseServiceClient } from "@/lib/supabase/server";
+import { CalendarMatrixGrid } from "@/components/admin/CalendarMatrixGrid";
 import {
   loginAdmin,
   logoutAdmin,
@@ -130,7 +131,7 @@ export default async function AdminSetupPage({
   const admin = getSupabaseServiceClient();
 
   // Profile rows + auth users (for email + email_confirmed_at) in parallel.
-  const [{ data: profiles }, { data: authUsers }, { data: meds }] = await Promise.all([
+  const [{ data: profiles }, { data: authUsers }, { data: meds }, { data: calendarDefaults }] = await Promise.all([
     admin
       .from("profiles")
       .select("id, full_name, preferred_name, role, phone, pin_enabled, is_admin")
@@ -140,7 +141,12 @@ export default async function AdminSetupPage({
       .from("medications")
       .select("id, name, dosage, frequency, is_active")
       .order("created_at", { ascending: true }),
+    admin.from("calendar_role_defaults").select("role, appt_type, enabled"),
   ]);
+
+  const calendarMatrixInitial = Object.fromEntries(
+    (calendarDefaults ?? []).map((d) => [`${d.role}:${d.appt_type}`, d.enabled]),
+  );
 
   const authById = new Map<string, { email: string | undefined; lastSignInAt: string | null }>();
   for (const u of authUsers?.users ?? []) {
@@ -386,6 +392,14 @@ export default async function AdminSetupPage({
               <li className="p-4 text-sm text-text-mid">No medications yet.</li>
             )}
           </ul>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-lg font-medium">Calendar sync defaults</h2>
+          <p className="text-sm text-text-mid">
+            Which appointment types push to each role's calendar by default. Each person can still override this for themselves from their profile.
+          </p>
+          <CalendarMatrixGrid initial={calendarMatrixInitial} />
         </section>
       </div>
     </main>
