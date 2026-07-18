@@ -32,8 +32,8 @@ export default async function MumTasks({
         .eq("appointment_date", day),
       admin
         .from("tasks")
-        .select("id, title, due_time, status, appointment_id")
-        .eq("assigned_to", user.id)
+        .select("id, title, due_time, status, appointment_id, task_assignees!inner(user_id)")
+        .eq("task_assignees.user_id", user.id)
         .eq("due_date", day)
         .neq("visibility", "private")
         .neq("visibility", "family_only"),
@@ -44,16 +44,18 @@ export default async function MumTasks({
     const { data: helperTasks } = apptIds.length > 0
       ? await admin
           .from("tasks")
-          .select("appointment_id, assignee:profiles!tasks_assigned_to_fkey(preferred_name)")
+          .select("appointment_id, assignees:task_assignees(user:profiles(preferred_name))")
           .in("appointment_id", apptIds)
           .neq("status", "done")
-      : { data: [] as { appointment_id: string | null; assignee: { preferred_name: string } | null }[] };
+      : { data: [] as { appointment_id: string | null; assignees: { user: { preferred_name: string } | null }[] }[] };
 
     const helpersByAppt = new Map<string, string[]>();
     for (const t of helperTasks ?? []) {
-      if (!t.appointment_id || !t.assignee) continue;
+      if (!t.appointment_id) continue;
+      const names = t.assignees.map((a) => a.user?.preferred_name).filter((n): n is string => Boolean(n));
+      if (names.length === 0) continue;
       const arr = helpersByAppt.get(t.appointment_id) ?? [];
-      arr.push(t.assignee.preferred_name);
+      arr.push(...names);
       helpersByAppt.set(t.appointment_id, arr);
     }
 
@@ -142,9 +144,9 @@ export default async function MumTasks({
 
   const [{ data: monthAppts }, { data: monthTasks }, { data: upcomingAppts }, { data: upcomingTasks }] = await Promise.all([
     admin.from("appointments").select("appointment_date").gte("appointment_date", monthStart).lte("appointment_date", monthEnd),
-    admin.from("tasks").select("due_date").eq("assigned_to", user.id).gte("due_date", monthStart).lte("due_date", monthEnd),
+    admin.from("tasks").select("due_date, task_assignees!inner(user_id)").eq("task_assignees.user_id", user.id).gte("due_date", monthStart).lte("due_date", monthEnd),
     admin.from("appointments").select("id, title, appointment_date, appointment_time, location").gte("appointment_date", today).order("appointment_date", { ascending: true }).limit(5),
-    admin.from("tasks").select("id, title, due_date, due_time").eq("assigned_to", user.id).gte("due_date", today).neq("status", "done").neq("visibility", "private").neq("visibility", "family_only").order("due_date", { ascending: true }).limit(5),
+    admin.from("tasks").select("id, title, due_date, due_time, task_assignees!inner(user_id)").eq("task_assignees.user_id", user.id).gte("due_date", today).neq("status", "done").neq("visibility", "private").neq("visibility", "family_only").order("due_date", { ascending: true }).limit(5),
   ]);
 
   const markedDates = new Set([...(monthAppts ?? []).map((a) => a.appointment_date), ...(monthTasks ?? []).map((t) => t.due_date!)]);

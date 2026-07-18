@@ -11,7 +11,18 @@ const VALID_TYPES: TaskKind[] = ["visit", "shopping", "transport", "appointment"
 const VALID_VISIBILITY: TaskVisibility[] = ["everyone", "family_only", "private"];
 const VALID_PRIORITY: TaskPriority[] = ["low", "medium", "high"];
 
-// Create a task — primary_carer + family.
+function revalidateTaskPaths(taskId?: string) {
+  revalidatePath("/family/tasks");
+  if (taskId) revalidatePath(`/family/tasks/${taskId}`);
+  revalidatePath("/family");
+  revalidatePath("/dad");
+  revalidatePath("/extended");
+  revalidatePath("/mum/tasks");
+  revalidatePath("/mum");
+}
+
+// Create a task — primary_carer + family. A task can be assigned to
+// more than one person; the "assigned_to" form field may repeat.
 export async function createTask(formData: FormData) {
   const ctx = await requireRole("primary_carer", "family");
 
@@ -20,8 +31,7 @@ export async function createTask(formData: FormData) {
   const task_type = String(formData.get("task_type") ?? "") as TaskKind;
   const due_date = String(formData.get("due_date") ?? "").trim() || null;
   const due_time = String(formData.get("due_time") ?? "").trim() || null;
-  const assigned_to_raw = String(formData.get("assigned_to") ?? "").trim();
-  const assigned_to = assigned_to_raw ? assigned_to_raw : null;
+  const assigneeIds = [...new Set(formData.getAll("assigned_to").map(String).filter(Boolean))];
   const visibility = (String(formData.get("visibility") ?? "family_only") || "family_only") as TaskVisibility;
   const priority = (String(formData.get("priority") ?? "medium") || "medium") as TaskPriority;
   const appointment_id = String(formData.get("appointment_id") ?? "").trim() || null;
@@ -37,26 +47,31 @@ export async function createTask(formData: FormData) {
     .from("tasks")
     .insert({
       title, description, task_type, due_date, due_time,
-      assigned_to, visibility, priority, appointment_id, push_to_calendar,
+      visibility, priority, appointment_id, push_to_calendar,
       created_by: ctx.userId,
-      status: assigned_to ? "claimed" : "open",
+      status: assigneeIds.length > 0 ? "claimed" : "open",
     })
     .select("id")
     .single();
   if (error || !data) throw new Error(`Could not create task: ${error?.message}`);
 
+  if (assigneeIds.length > 0) {
+    const { error: assigneeError } = await supabase
+      .from("task_assignees")
+      .insert(assigneeIds.map((user_id) => ({ task_id: data.id, user_id })));
+    if (assigneeError) throw new Error(`Task created but could not assign: ${assigneeError.message}`);
+  }
+
   if (push_to_calendar) await syncSourceToCalendars("task", data.id, "create");
 
-  revalidatePath("/family/tasks");
-  revalidatePath("/family");
-  revalidatePath("/dad");
-  revalidatePath("/extended");
-  revalidatePath("/mum/tasks");
+  revalidateTaskPaths();
   redirect("/family/tasks");
 }
 
-// Claim an unclaimed task — extended + family.
-// Extended is the canonical case; family can also claim for themselves.
+// Claim/join a task — family + extended. Additive: inserts the caller
+// as an assignee without touching anyone already assigned, so claiming
+// a task someone else is already on doesn't remove their assignment.
+// Bumps status open -> claimed; a no-op if it's already claimed or done.
 export async function claimTask(formData: FormData) {
   const ctx = await requireRole("family", "extended");
   const taskId = String(formData.get("task_id") ?? "");
@@ -64,45 +79,41 @@ export async function claimTask(formData: FormData) {
 
   const supabase = await getSupabaseServerClient();
   const { error } = await supabase
-    .from("tasks")
-    .update({ assigned_to: ctx.userId, status: "claimed" })
-    .eq("id", taskId)
-    .is("assigned_to", null);
-  if (error) throw new Error(`Could not claim: ${error.message}`);
+    .from("task_assignees")
+    .insert({ task_id: taskId, user_id: ctx.userId });
+  if (error && error.code !== "23505") throw new Error(`Could not claim: ${error.message}`);
 
-  revalidatePath("/family/tasks");
-  revalidatePath("/family");
-  revalidatePath("/extended");
+  const { error: statusError } = await supabase
+    .from("tasks")
+    .update({ status: "claimed" })
+    .eq("id", taskId)
+    .eq("status", "open");
+  if (statusError) throw new Error(`Could not claim: ${statusError.message}`);
+
+  revalidateTaskPaths(taskId);
 }
 
-// Toggle complete/incomplete — assignee or a privileged role (primary_carer / family).
+// Toggle complete/incomplete. RLS scopes who can actually update the
+// row: primary_carer/family can touch any task, extended only tasks
+// they're an assignee of (task_assignees), patient not at all.
 // "next" lets the task-detail page flip a done task back to claimed
 // ("Mark as Incomplete"), matching the design's toggle affordance.
 export async function markTaskDoneAction(formData: FormData) {
-  const ctx = await requireSession();
+  await requireSession();
   const taskId = String(formData.get("task_id") ?? "");
   const next = String(formData.get("next") ?? "done") === "incomplete" ? "claimed" : "done";
   if (!taskId) throw new Error("Missing task.");
 
-  // primary_carer + family can mark any task done; others only when assigned to self.
   const supabase = await getSupabaseServerClient();
-  let query = supabase.from("tasks").update({ status: next }).eq("id", taskId);
-  if (ctx.role !== "primary_carer" && ctx.role !== "family") {
-    query = query.eq("assigned_to", ctx.userId);
-  }
-  const { error } = await query;
+  const { error } = await supabase.from("tasks").update({ status: next }).eq("id", taskId);
   if (error) throw new Error(`Could not update: ${error.message}`);
 
-  revalidatePath("/family/tasks");
-  revalidatePath("/family");
-  revalidatePath("/dad");
-  revalidatePath("/mum");
-  revalidatePath("/extended");
+  revalidateTaskPaths(taskId);
 }
 
 // Take over a claimed task — sets attending_user_id to the caller without
-// changing assigned_to (the "owner of record"), and posts a visible update
-// announcing the handoff. Distinct from reassignTask: this is a lightweight
+// changing the assignee list, and posts a visible update announcing the
+// handoff. Distinct from setTaskAssignees: this is a lightweight
 // self-service "I've got this one" rather than an admin reassignment.
 export async function takeOverTask(taskId: string): Promise<void> {
   const ctx = await requireRole("primary_carer", "family");
@@ -128,11 +139,7 @@ export async function takeOverTask(taskId: string): Promise<void> {
   if (taskRes.error) throw new Error(`Could not take over: ${taskRes.error.message}`);
   if (updateRes.error) throw new Error(`Took over but couldn't post update: ${updateRes.error.message}`);
 
-  revalidatePath("/family/tasks");
-  revalidatePath(`/family/tasks/${taskId}`);
-  revalidatePath("/family");
-  revalidatePath("/dad");
-  revalidatePath("/extended");
+  revalidateTaskPaths(taskId);
 }
 
 // Replaces the full "hide from" list for a task in one go — simpler
@@ -159,45 +166,49 @@ export async function setTaskHiddenFrom(formData: FormData): Promise<void> {
   revalidatePath("/family/tasks");
 }
 
-// Toggle "send to my calendar" on an existing task — the assignee or a
-// privileged role. Only meaningful once the assignee has a Google/Apple
-// connection, gated in the UI rather than here.
+// Toggle "send to my calendar" on an existing task. RLS scopes who can
+// actually flip it, same as markTaskDoneAction.
 export async function setTaskPushToCalendar(formData: FormData): Promise<void> {
-  const ctx = await requireSession();
+  await requireSession();
   const taskId = String(formData.get("task_id") ?? "");
   const enabled = String(formData.get("enabled") ?? "") === "true";
   if (!taskId) throw new Error("Missing task.");
 
   const supabase = await getSupabaseServerClient();
-  let query = supabase.from("tasks").update({ push_to_calendar: enabled }).eq("id", taskId);
-  if (ctx.role !== "primary_carer" && ctx.role !== "family") {
-    query = query.eq("assigned_to", ctx.userId);
-  }
-  const { error } = await query;
+  const { error } = await supabase.from("tasks").update({ push_to_calendar: enabled }).eq("id", taskId);
   if (error) throw new Error(`Could not update: ${error.message}`);
 
   await syncSourceToCalendars("task", taskId, enabled ? "create" : "delete");
   revalidatePath(`/family/tasks/${taskId}`);
 }
 
-// Reassign — primary_carer + family. Redirects back to /family/tasks after
-// save, since updating assignment is usually a "save and back out" interaction.
-export async function reassignTask(formData: FormData) {
+// Replaces the full assignee list for a task in one go — primary_carer +
+// family only. Multi-select, so "add self alongside others" is just
+// checking one more box rather than a separate action; claimTask above
+// covers the additive family/extended self-serve case.
+export async function setTaskAssignees(formData: FormData): Promise<void> {
   await requireRole("primary_carer", "family");
   const taskId = String(formData.get("task_id") ?? "");
-  const assigned_to_raw = String(formData.get("assigned_to") ?? "").trim();
-  const assigned_to = assigned_to_raw ? assigned_to_raw : null;
+  if (!taskId) throw new Error("Missing task.");
+  const userIds = [...new Set(formData.getAll("assigned_to").map(String).filter(Boolean))];
 
   const supabase = await getSupabaseServerClient();
-  const { error } = await supabase
-    .from("tasks")
-    .update({ assigned_to, status: assigned_to ? "claimed" : "open" })
-    .eq("id", taskId);
-  if (error) throw new Error(`Could not reassign: ${error.message}`);
+  const { error: deleteError } = await supabase.from("task_assignees").delete().eq("task_id", taskId);
+  if (deleteError) throw new Error(`Could not update: ${deleteError.message}`);
 
-  revalidatePath("/family/tasks");
-  revalidatePath("/family");
-  revalidatePath("/dad");
-  revalidatePath("/extended");
-  redirect("/family/tasks");
+  if (userIds.length > 0) {
+    const { error: insertError } = await supabase
+      .from("task_assignees")
+      .insert(userIds.map((user_id) => ({ task_id: taskId, user_id })));
+    if (insertError) throw new Error(`Could not update: ${insertError.message}`);
+  }
+
+  const { error: statusError } = await supabase
+    .from("tasks")
+    .update({ status: userIds.length > 0 ? "claimed" : "open" })
+    .eq("id", taskId)
+    .neq("status", "done");
+  if (statusError) throw new Error(`Could not update: ${statusError.message}`);
+
+  revalidateTaskPaths(taskId);
 }

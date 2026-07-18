@@ -31,23 +31,28 @@ export default async function FamilyTasks({
   const weekOut = isoLocalDate(addDays(new Date(), 7));
 
   const SELECT = `
-    id, title, task_type, due_date, due_time, status, assigned_to, priority, visibility,
-    assignee:profiles!tasks_assigned_to_fkey ( preferred_name ),
+    id, title, task_type, due_date, due_time, status, priority, visibility,
+    assignees:task_assignees ( user:profiles ( preferred_name ) ),
+    creator:profiles!tasks_created_by_fkey ( preferred_name )
+  `;
+  const SELECT_MINE = `
+    id, title, task_type, due_date, due_time, status, priority, visibility,
+    assignees:task_assignees!inner ( user:profiles ( preferred_name ) ),
     creator:profiles!tasks_created_by_fkey ( preferred_name )
   `;
 
   let activeQuery = admin
     .from("tasks")
-    .select(SELECT)
+    .select(filter === "mine" ? SELECT_MINE : SELECT)
     .neq("status", "done")
     .order("due_date", { ascending: true, nullsFirst: false });
 
   if (filter === "week") {
     activeQuery = activeQuery.gte("due_date", today).lte("due_date", weekOut);
   } else if (filter === "unclaimed") {
-    activeQuery = activeQuery.is("assigned_to", null);
+    activeQuery = activeQuery.eq("status", "open");
   } else if (filter === "mine") {
-    activeQuery = activeQuery.eq("assigned_to", user.id);
+    activeQuery = activeQuery.eq("task_assignees.user_id", user.id);
   }
 
   const showRecentlyDone = filter === "all";
@@ -113,7 +118,7 @@ export default async function FamilyTasks({
                   dueDate={t.due_date}
                   dueTime={t.due_time}
                   status={t.status}
-                  assignedFor={t.assignee?.preferred_name ?? (t.assigned_to ? null : "Unclaimed")}
+                  assignedFor={t.assignees.map((a) => a.user?.preferred_name).filter(Boolean).join(", ") || "Unclaimed"}
                   assignedFrom={t.creator?.preferred_name}
                   priorityColour={PRIORITY_COLOUR[t.priority]}
                 />
@@ -136,7 +141,7 @@ export default async function FamilyTasks({
                     dueDate={t.due_date}
                     dueTime={t.due_time}
                     status={t.status}
-                    assignedFor={t.assignee?.preferred_name}
+                    assignedFor={t.assignees.map((a) => a.user?.preferred_name).filter(Boolean).join(", ") || undefined}
                     assignedFrom={t.creator?.preferred_name}
                     priorityColour={PRIORITY_COLOUR[t.priority]}
                   />

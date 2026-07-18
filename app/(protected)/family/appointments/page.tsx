@@ -193,7 +193,7 @@ export default async function FamilyAppointments({
         .order("appointment_time", { ascending: true, nullsFirst: false }),
       admin
         .from("tasks")
-        .select("id, title, task_type, due_time, status, assignee:profiles!tasks_assigned_to_fkey(preferred_name)")
+        .select("id, title, task_type, due_time, status, assignees:task_assignees(user:profiles(preferred_name))")
         .eq("due_date", day)
         .order("due_time", { ascending: true, nullsFirst: false }),
     ]);
@@ -260,7 +260,7 @@ export default async function FamilyAppointments({
                   <div className="rounded-2xl bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.06)] flex items-center justify-between gap-3">
                     <div>
                       <div className="font-extrabold text-text-dark">{t.title}</div>
-                      <div className="text-xs text-text-mid mt-0.5">{t.assignee?.preferred_name ?? "Unassigned"}</div>
+                      <div className="text-xs text-text-mid mt-0.5">{t.assignees.map((a) => a.user?.preferred_name).filter(Boolean).join(", ") || "Unassigned"}</div>
                     </div>
                     {t.due_time && <span className="text-xs text-text-mid font-semibold">{t.due_time}</span>}
                   </div>

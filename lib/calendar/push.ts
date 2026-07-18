@@ -153,20 +153,24 @@ async function buildPushUnits(sourceType: SourceType, sourceId: string, change: 
   }
 
   if (sourceType === "task") {
-    const { data: task } = await admin
-      .from("tasks")
-      .select("title, description, due_date, due_time, assigned_to, push_to_calendar")
-      .eq("id", sourceId)
-      .maybeSingle();
+    const [{ data: task }, { data: taskAssignees }] = await Promise.all([
+      admin
+        .from("tasks")
+        .select("title, description, due_date, due_time, push_to_calendar")
+        .eq("id", sourceId)
+        .maybeSingle(),
+      admin.from("task_assignees").select("user_id").eq("task_id", sourceId),
+    ]);
     if (!task && change !== "delete") return [];
-    if (!task?.assigned_to) return [{ sourceId, event: null, recipients: [] }];
+    const assigneeIds = (taskAssignees ?? []).map((a) => a.user_id);
+    if (assigneeIds.length === 0) return [{ sourceId, event: null, recipients: [] }];
 
     const enabled = change !== "delete" && !!task?.push_to_calendar && !!task?.due_date;
     const event: CalendarEvent | null = task?.due_date
       ? { title: task.title, description: task.description ?? "", location: null, date: task.due_date, time: task.due_time }
       : null;
 
-    return [{ sourceId, event, recipients: [{ userId: task.assigned_to, enabled }] }];
+    return [{ sourceId, event, recipients: assigneeIds.map((userId) => ({ userId, enabled })) }];
   }
 
   // medication — one push unit per reminder_times slot, each its own

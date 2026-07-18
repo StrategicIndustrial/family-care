@@ -19,7 +19,7 @@ const PRIORITY_OPTIONS = [
 ] as const;
 
 export default async function NewTaskPage() {
-  await requireSession();
+  const ctx = await requireSession();
   const admin = getSupabaseServiceClient();
   const { data: members } = await admin
     .from("profiles")
@@ -66,21 +66,26 @@ export default async function NewTaskPage() {
             Send to the assignee's calendar (if they've connected Google or Apple)
           </label>
 
-          <div>
-            <label className="block text-sm font-bold text-sage-text mb-2">Assign To</label>
-            <select
-              name="assigned_to"
-              defaultValue=""
-              className="w-full rounded-2xl border-2 border-sage-100 bg-white px-4 py-3 text-base font-semibold text-text-dark focus:outline-none focus:border-sage-500"
-            >
-              <option value="">Leave unassigned</option>
+          <fieldset>
+            <legend className="block text-sm font-bold text-sage-text mb-2">Assign To</legend>
+            <div className="flex flex-col gap-1.5">
               {(members ?? []).map((m) => (
-                <option key={m.id} value={m.id}>
+                <label key={m.id} className="flex items-center gap-2 text-sm font-semibold text-text-dark">
+                  <input
+                    type="checkbox"
+                    name="assigned_to"
+                    value={m.id}
+                    defaultChecked={m.id === ctx.userId}
+                    className="accent-sage-500"
+                  />
                   {roleLabel(m.role) ? `${m.preferred_name} (${roleLabel(m.role)})` : m.preferred_name}
-                </option>
+                </label>
               ))}
-            </select>
-          </div>
+              {(members ?? []).length === 0 && (
+                <p className="text-xs text-text-mid">No one to assign yet.</p>
+              )}
+            </div>
+          </fieldset>
 
           {/* Visibility */}
           <fieldset>

@@ -47,8 +47,8 @@ export default async function MumHome() {
       .limit(1)
       .maybeSingle(),
     admin.from("tasks")
-      .select("id, title, status")
-      .eq("assigned_to", user.id)
+      .select("id, title, status, task_assignees!inner(user_id)")
+      .eq("task_assignees.user_id", user.id)
       .neq("status", "done")
       .limit(10),
     admin.from("updates")

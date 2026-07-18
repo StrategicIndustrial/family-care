@@ -4,7 +4,7 @@ import { getSupabaseServiceClient } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth-helpers";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
-import { MarkDoneButton, ReassignSelect } from "@/components/family/TaskActions";
+import { MarkDoneButton, AssigneesEditor } from "@/components/family/TaskActions";
 import { TakeoverButton } from "@/components/family/TakeoverButton";
 import { TaskCalendarToggle } from "@/components/family/TaskCalendarToggle";
 import { HideFromPicker } from "@/components/family/HideFromPicker";
@@ -39,9 +39,9 @@ export default async function TaskDetail({
 
   const [{ data: task }, { data: members }, { data: hiddenFrom }] = await Promise.all([
     admin.from("tasks").select(`
-        id, title, description, task_type, due_date, due_time, status, assigned_to,
+        id, title, description, task_type, due_date, due_time, status,
         priority, visibility, attending_user_id, push_to_calendar,
-        assignee:profiles!tasks_assigned_to_fkey ( id, preferred_name ),
+        assignees:task_assignees ( user:profiles ( id, preferred_name ) ),
         creator:profiles!tasks_created_by_fkey ( preferred_name ),
         attending:profiles!tasks_attending_user_id_fkey ( preferred_name )
       `).eq("id", id).single(),
@@ -51,6 +51,9 @@ export default async function TaskDetail({
 
   if (!task) notFound();
 
+  const assigneeNames = (task.assignees ?? []).map((a) => a.user?.preferred_name).filter((n): n is string => Boolean(n));
+  const assigneeIds = (task.assignees ?? []).map((a) => a.user?.id).filter((n): n is string => Boolean(n));
+
   return (
     <main className="flex-1 pb-16 anim-fade-in">
       <header className="hdr-sage px-6 pt-12 pb-8 rounded-b-3xl">
@@ -59,7 +62,7 @@ export default async function TaskDetail({
             ← Back
           </Link>
           <div className="text-[11px] font-extrabold text-white/80 uppercase tracking-wide">
-            {task.assignee?.preferred_name ? `For ${task.assignee.preferred_name}` : "Unclaimed"}
+            {assigneeNames.length > 0 ? `For ${assigneeNames.join(", ")}` : "Unclaimed"}
           </div>
           <h1 className="text-2xl font-extrabold text-white mt-1">{task.title}</h1>
         </div>
@@ -109,10 +112,10 @@ export default async function TaskDetail({
 
         <Card className="space-y-3">
           <div className="text-sm font-extrabold text-text-dark">Assigned to</div>
-          <ReassignSelect
+          <AssigneesEditor
             taskId={task.id}
             members={(members ?? []).map((m) => ({ id: m.id, preferred_name: m.preferred_name }))}
-            currentId={task.assigned_to}
+            currentIds={assigneeIds}
           />
           <TakeoverButton
             taskId={task.id}

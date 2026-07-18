@@ -40,7 +40,7 @@ export default async function FamilyHome() {
     admin.from("profiles").select("preferred_name, is_admin").eq("id", user.id).single(),
     admin.from("tasks").select(`
         id, title, task_type, due_date, due_time, status,
-        assignee:profiles!tasks_assigned_to_fkey ( preferred_name )
+        assignees:task_assignees ( user:profiles ( preferred_name ) )
       `)
       .gte("due_date", today).lte("due_date", weekOut)
       .neq("status", "done")
@@ -49,7 +49,7 @@ export default async function FamilyHome() {
       .gte("appointment_date", today).lte("appointment_date", weekOut)
       .order("appointment_date", { ascending: true }),
     admin.from("tasks").select("id, title, task_type, due_date, due_time")
-      .is("assigned_to", null).eq("status", "open")
+      .eq("status", "open")
       .order("due_date", { ascending: true, nullsFirst: false }),
     admin.from("updates").select(`
         id, body, is_flagged, created_at,
@@ -157,7 +157,7 @@ export default async function FamilyHome() {
                       <div>
                         <div className="font-extrabold text-text-dark">{t.title}</div>
                         <div className="text-xs text-text-mid mt-0.5">
-                          {t.assignee?.preferred_name ?? "Unclaimed"}
+                          {t.assignees.map((a) => a.user?.preferred_name).filter(Boolean).join(", ") || "Unclaimed"}
                         </div>
                       </div>
                       <div className="text-xs text-text-mid font-semibold">

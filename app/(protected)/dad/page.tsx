@@ -43,14 +43,14 @@ export default async function DadHome() {
       .gte("taken_at", dayStart).order("taken_at", { ascending: false }),
     admin.from("tasks").select(`
         id, title, task_type, due_date, due_time, status,
-        assignee:profiles!tasks_assigned_to_fkey ( preferred_name, avatar_url )
+        task_assignees!inner ( user_id )
       `)
-      .eq("assigned_to", user.id).neq("status", "done")
+      .eq("task_assignees.user_id", user.id).neq("status", "done")
       .or(`due_date.lte.${today},due_date.is.null`)
       .order("due_date", { ascending: true, nullsFirst: false }),
     admin.from("tasks").select(`
         id, title, task_type, due_date, due_time, status,
-        assignee:profiles!tasks_assigned_to_fkey ( preferred_name, avatar_url )
+        assignees:task_assignees ( user:profiles ( preferred_name, avatar_url ) )
       `)
       .gte("due_date", today).lte("due_date", weekOut)
       .neq("status", "done").order("due_date", { ascending: true }),
@@ -172,7 +172,7 @@ export default async function DadHome() {
                       <div>
                         <div className="font-extrabold text-text-dark">{t.title}</div>
                         <div className="text-xs text-text-mid mt-0.5">
-                          {t.assignee?.preferred_name ?? "Unclaimed"}
+                          {t.assignees.map((a) => a.user?.preferred_name).filter(Boolean).join(", ") || "Unclaimed"}
                         </div>
                       </div>
                       <div className="text-xs text-text-mid font-semibold">

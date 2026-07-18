@@ -1,4 +1,4 @@
-import { getSupabaseServiceClient } from "@/lib/supabase/server";
+import { getSupabaseServerClient, getSupabaseServiceClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/Badge";
 import { UpdatePost } from "@/components/shared/UpdatePost";
 import { ClaimButton } from "@/components/family/ClaimButton";
@@ -17,6 +17,8 @@ const TYPE_LABEL: Record<TaskKind, string> = {
 };
 
 export default async function ExtendedHome() {
+  const supabase = await getSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
   const admin = getSupabaseServiceClient();
 
   const [{ data: updates }, { data: openVisits }, { data: myClaimed }] = await Promise.all([
@@ -30,13 +32,15 @@ export default async function ExtendedHome() {
     admin.from("tasks").select("id, title, task_type, due_date, due_time")
       .in("task_type", ["visit", "transport"])
       .eq("status", "open")
-      .is("assigned_to", null)
       .order("due_date", { ascending: true, nullsFirst: false }),
-    admin.from("tasks").select("id, title, task_type, due_date, due_time")
-      .in("task_type", ["visit", "transport"])
-      .eq("status", "claimed")
-      .order("due_date", { ascending: true, nullsFirst: false })
-      .limit(5),
+    user
+      ? admin.from("tasks").select("id, title, task_type, due_date, due_time, task_assignees!inner(user_id)")
+          .in("task_type", ["visit", "transport"])
+          .eq("status", "claimed")
+          .eq("task_assignees.user_id", user.id)
+          .order("due_date", { ascending: true, nullsFirst: false })
+          .limit(5)
+      : Promise.resolve({ data: [] }),
   ]);
 
   return (

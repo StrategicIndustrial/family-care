@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import { markTaskDoneAction, reassignTask } from "@/app/actions/tasks";
+import { markTaskDoneAction, setTaskAssignees } from "@/app/actions/tasks";
 import { Button } from "@/components/ui/Button";
 
 export function MarkDoneButton({ taskId, done }: { taskId: string; done: boolean }) {
@@ -19,29 +19,39 @@ export function MarkDoneButton({ taskId, done }: { taskId: string; done: boolean
 
 type Member = { id: string; preferred_name: string };
 
-export function ReassignSelect({ taskId, members, currentId }: {
+// Multi-select: check as many people as needed, including yourself
+// alongside anyone already checked — this form always submits the full
+// set, so adding one more name never drops the others.
+export function AssigneesEditor({ taskId, members, currentIds }: {
   taskId: string;
   members: Member[];
-  currentId: string | null;
+  currentIds: string[];
 }) {
   const [pending, startTransition] = useTransition();
   return (
     <form
-      action={(fd) => startTransition(() => reassignTask(fd))}
-      className="flex items-center gap-2"
+      action={(fd) => startTransition(() => setTaskAssignees(fd))}
+      className="space-y-2"
     >
       <input type="hidden" name="task_id" value={taskId} />
-      <select
-        name="assigned_to"
-        defaultValue={currentId ?? ""}
-        disabled={pending}
-        className="flex-1 rounded-xl border-2 border-line bg-white px-3 py-2 text-sm font-semibold"
-      >
-        <option value="">Unassigned</option>
+      <div className="flex flex-col gap-1.5">
         {members.map((m) => (
-          <option key={m.id} value={m.id}>{m.preferred_name}</option>
+          <label key={m.id} className="flex items-center gap-2 text-sm font-semibold text-text-dark">
+            <input
+              type="checkbox"
+              name="assigned_to"
+              value={m.id}
+              defaultChecked={currentIds.includes(m.id)}
+              disabled={pending}
+              className="accent-sage-500"
+            />
+            {m.preferred_name}
+          </label>
         ))}
-      </select>
+        {members.length === 0 && (
+          <p className="text-xs text-text-mid">No one to assign yet.</p>
+        )}
+      </div>
       <Button type="submit" variant="outline" size="sm" disabled={pending}>
         {pending ? "…" : "Save"}
       </Button>
