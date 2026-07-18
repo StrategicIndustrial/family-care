@@ -51,7 +51,7 @@ export function SignInForm() {
     e.preventDefault();
     if (status.kind !== "sent") return;
     const token = code.trim();
-    if (token.length < 6) return;
+    if (token.length < 6 || token.length > 10) return;
 
     setCodeStatus("verifying");
     setCodeError("");
@@ -111,12 +111,12 @@ export function SignInForm() {
               inputMode="numeric"
               autoComplete="one-time-code"
               pattern="[0-9]*"
-              maxLength={6}
+              maxLength={10}
               required
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
               disabled={codeStatus === "verifying"}
-              className="w-full rounded-2xl border-2 border-sage-100 bg-white px-4 py-4 text-2xl text-center tracking-[0.5em] font-extrabold text-text-dark
+              className="w-full rounded-2xl border-2 border-sage-100 bg-white px-4 py-4 text-2xl text-center tracking-[0.3em] font-extrabold text-text-dark
                          focus:border-sage-500 focus:outline-none disabled:opacity-60"
               placeholder="••••••"
               autoFocus
@@ -125,7 +125,7 @@ export function SignInForm() {
 
           <button
             type="submit"
-            disabled={codeStatus === "verifying" || code.length < 6}
+            disabled={codeStatus === "verifying" || code.length < 6 || code.length > 10}
             className="w-full rounded-2xl cta-sage text-white text-lg font-extrabold py-4
                        shadow-[0_6px_20px_rgba(93,168,130,0.4)] disabled:opacity-60"
           >
