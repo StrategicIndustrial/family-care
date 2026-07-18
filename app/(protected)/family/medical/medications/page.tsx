@@ -27,7 +27,13 @@ export default async function FamilyMedications() {
               <path d="M8 2L2 8l6 6" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </Link>
-          <h1 className="text-2xl font-extrabold text-white">Medications</h1>
+          <h1 className="text-2xl font-extrabold text-white flex-1">Medications</h1>
+          <Link
+            href="/family/medical/medications/history"
+            className="text-xs font-bold text-white/85 hover:text-white bg-white/15 hover:bg-white/25 px-3 py-1.5 rounded-full shrink-0"
+          >
+            History
+          </Link>
         </div>
       </header>
 
