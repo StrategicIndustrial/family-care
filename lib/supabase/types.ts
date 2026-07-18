@@ -725,13 +725,7 @@ export type Database = {
       verify_my_pin: { Args: { candidate: string }; Returns: boolean };
     };
     Enums: {
-      appt_type:
-        | "gp"
-        | "specialist"
-        | "scan_test"
-        | "dental"
-        | "allied_health"
-        | "other";
+      appt_type: "gp" | "specialist" | "scan_test" | "other";
       calendar_connection_status: "active" | "error" | "revoked";
       calendar_provider: "google" | "apple";
       mood_type: "great" | "okay" | "not_great";

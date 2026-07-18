@@ -10,7 +10,7 @@ import type { ApptType } from "@/lib/supabase/types";
 
 export const dynamic = "force-dynamic";
 
-const APPT_TYPES: ApptType[] = ["gp", "specialist", "scan_test", "dental", "allied_health", "other"];
+const APPT_TYPES: ApptType[] = ["gp", "specialist", "scan_test", "other"];
 
 const CALENDAR_ERROR_MESSAGES: Record<string, string> = {
   missing_params: "Google didn't return the expected response — try connecting again.",

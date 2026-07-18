@@ -8,8 +8,6 @@ const APPT_TYPE_LABELS: Record<ApptType, string> = {
   gp: "GP",
   specialist: "Specialist",
   scan_test: "Scan/Test",
-  dental: "Dental",
-  allied_health: "Allied Health",
   other: "Other",
 };
 

@@ -7,7 +7,7 @@ import { requireRole } from "@/lib/auth-helpers";
 import { syncAppointmentToCalendars } from "@/lib/calendar/push";
 import type { ApptType } from "@/lib/supabase/types";
 
-const VALID_APPT_TYPES: ApptType[] = ["gp", "specialist", "scan_test", "dental", "allied_health", "other"];
+const VALID_APPT_TYPES: ApptType[] = ["gp", "specialist", "scan_test", "other"];
 
 export async function createAppointment(formData: FormData) {
   const ctx = await requireRole("primary_carer", "family");

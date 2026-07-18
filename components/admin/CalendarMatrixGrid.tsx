@@ -5,7 +5,7 @@ import { updateRoleDefault } from "@/app/actions/calendar-prefs";
 import type { ApptType, UserRole } from "@/lib/supabase/types";
 
 const ROLES: UserRole[] = ["primary_carer", "family", "extended", "patient"];
-const APPT_TYPES: ApptType[] = ["gp", "specialist", "scan_test", "dental", "allied_health", "other"];
+const APPT_TYPES: ApptType[] = ["gp", "specialist", "scan_test", "other"];
 
 const ROLE_LABELS: Record<UserRole, string> = {
   primary_carer: "Significant Other",
@@ -17,8 +17,6 @@ const APPT_TYPE_LABELS: Record<ApptType, string> = {
   gp: "GP",
   specialist: "Specialist",
   scan_test: "Scan/Test",
-  dental: "Dental",
-  allied_health: "Allied Health",
   other: "Other",
 };
 

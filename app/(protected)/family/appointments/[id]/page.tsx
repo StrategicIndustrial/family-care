@@ -17,8 +17,6 @@ const APPT_TYPE_OPTIONS: { value: ApptType; label: string }[] = [
   { value: "gp", label: "GP" },
   { value: "specialist", label: "Specialist" },
   { value: "scan_test", label: "Scan/Test" },
-  { value: "dental", label: "Dental" },
-  { value: "allied_health", label: "Allied Health" },
   { value: "other", label: "Other" },
 ];
 
