@@ -146,30 +146,16 @@ export default async function MumHome() {
           )}
         </Link>
 
-        {/* -------------------- Shortcuts -------------------- */}
+        {/* -------------------- Shortcut -------------------- */}
         <Link
           href="/mum/tasks"
           className="flex items-center gap-3 px-[18px] py-3.5 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)]"
         >
-          <div className="w-[38px] h-[38px] rounded-[11px] bg-sage-50 flex items-center justify-center text-base shrink-0" aria-hidden="true">✅</div>
+          <div className="w-[38px] h-[38px] rounded-[11px] bg-peach-100 flex items-center justify-center text-base shrink-0" aria-hidden="true">🗓️</div>
           <div className="flex-1">
-            <div className="text-[15px] font-extrabold text-text-dark">My Tasks</div>
+            <div className="text-[15px] font-extrabold text-text-dark">Tasks & Appointments</div>
             <div className="text-xs text-text-mid">
-              {openTaskCount === 0 ? "Nothing to do" : `${openTaskCount} to do`}
-            </div>
-          </div>
-          <span className="text-line text-lg" aria-hidden="true">›</span>
-        </Link>
-
-        <Link
-          href="/mum/appointments"
-          className="flex items-center gap-3 px-[18px] py-3.5 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)]"
-        >
-          <div className="w-[38px] h-[38px] rounded-[11px] bg-peach-100 flex items-center justify-center text-base shrink-0" aria-hidden="true">📅</div>
-          <div className="flex-1">
-            <div className="text-[15px] font-extrabold text-text-dark">Appointments</div>
-            <div className="text-xs text-text-mid">
-              {nextAppt ? "Upcoming" : "None this week"}
+              {openTaskCount === 0 && !nextAppt ? "Nothing scheduled" : [openTaskCount > 0 ? `${openTaskCount} to do` : null, nextAppt ? "Upcoming appointment" : null].filter(Boolean).join(" · ")}
             </div>
           </div>
           <span className="text-line text-lg" aria-hidden="true">›</span>

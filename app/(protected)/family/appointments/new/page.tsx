@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createAppointment } from "@/app/actions/appointments";
 import { TimeField } from "@/components/ui/TimeField";
+import { requireSession } from "@/lib/auth-helpers";
 import type { ApptType } from "@/lib/supabase/types";
 
 export const dynamic = "force-dynamic";
@@ -19,13 +20,15 @@ export default async function NewAppointment({
 }) {
   const { date } = await searchParams;
   const defaultDate = date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : undefined;
+  const ctx = await requireSession();
+  const cancelHref = ctx.role === "patient" ? "/mum/tasks" : "/family/appointments";
 
   return (
     <main className="flex-1 pb-16 anim-fade-in">
       <header className="hdr-peach px-6 pt-12 pb-8 rounded-b-3xl">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <h1 className="text-2xl font-extrabold text-white">New Appointment</h1>
-          <Link href="/family/appointments" className="text-xs font-bold text-white/85 hover:text-white bg-white/15 hover:bg-white/25 px-3 py-1.5 rounded-full">
+          <Link href={cancelHref} className="text-xs font-bold text-white/85 hover:text-white bg-white/15 hover:bg-white/25 px-3 py-1.5 rounded-full">
             Cancel
           </Link>
         </div>

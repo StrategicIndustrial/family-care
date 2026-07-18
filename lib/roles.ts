@@ -21,6 +21,12 @@ export function allowedRolesForPath(pathname: string): UserRole[] | null {
   // Chronicle is Leanne's compiled medical view too (add + view notes/results,
   // never Observations, never Export/AI Insights — enforced in the page itself).
   if (pathname.startsWith("/family/chronicle")) return ["patient", "primary_carer", "family"];
+  // Leanne's own calendar view lives at /mum/tasks, not the carer's
+  // /family/appointments list — but she reaches the same new/detail
+  // pages from it (create/edit an appointment), so those subpaths admit
+  // her too while the bare list stays carer-only.
+  if (pathname === "/family/appointments") return ["primary_carer", "family"];
+  if (pathname.startsWith("/family/appointments/")) return ["patient", "primary_carer", "family"];
   if (pathname.startsWith("/family")) return ["primary_carer", "family"];
   if (pathname.startsWith("/extended")) return ["extended"];
   return null;

@@ -608,6 +608,7 @@ export type Database = {
       };
       tasks: {
         Row: {
+          appointment_id: string | null;
           assigned_to: string | null;
           attending_user_id: string | null;
           created_at: string;
@@ -624,6 +625,7 @@ export type Database = {
           visibility: Database["public"]["Enums"]["task_visibility"];
         };
         Insert: {
+          appointment_id?: string | null;
           assigned_to?: string | null;
           attending_user_id?: string | null;
           created_at?: string;
@@ -640,6 +642,7 @@ export type Database = {
           visibility?: Database["public"]["Enums"]["task_visibility"];
         };
         Update: {
+          appointment_id?: string | null;
           assigned_to?: string | null;
           attending_user_id?: string | null;
           created_at?: string;
@@ -656,6 +659,13 @@ export type Database = {
           visibility?: Database["public"]["Enums"]["task_visibility"];
         };
         Relationships: [
+          {
+            foreignKeyName: "tasks_appointment_id_fkey";
+            columns: ["appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointments";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "tasks_assigned_to_fkey";
             columns: ["assigned_to"];

@@ -10,7 +10,7 @@ import type { ApptType } from "@/lib/supabase/types";
 const VALID_APPT_TYPES: ApptType[] = ["gp", "specialist", "scan_test", "other"];
 
 export async function createAppointment(formData: FormData) {
-  const ctx = await requireRole("primary_carer", "family");
+  const ctx = await requireRole("primary_carer", "family", "patient");
 
   const title = String(formData.get("title") ?? "").trim();
   const appointment_date = String(formData.get("appointment_date") ?? "").trim();
@@ -39,13 +39,14 @@ export async function createAppointment(formData: FormData) {
   await syncSourceToCalendars("appointment", data.id, "create");
 
   revalidatePath("/family/appointments");
-  redirect("/family/appointments");
+  revalidatePath("/mum/tasks");
+  redirect(ctx.role === "patient" ? "/mum/tasks" : "/family/appointments");
 }
 
 // Edits the core fields — previously there was no way to fix a typo'd
 // title/date/time/location after creation at all.
 export async function updateAppointmentDetails(formData: FormData) {
-  await requireRole("primary_carer", "family");
+  await requireRole("primary_carer", "family", "patient");
 
   const id = String(formData.get("id") ?? "");
   const title = String(formData.get("title") ?? "").trim();
@@ -71,10 +72,11 @@ export async function updateAppointmentDetails(formData: FormData) {
 
   revalidatePath(`/family/appointments/${id}`);
   revalidatePath("/family/appointments");
+  revalidatePath("/mum/tasks");
 }
 
 export async function deleteAppointment(formData: FormData) {
-  await requireRole("primary_carer", "family");
+  const ctx = await requireRole("primary_carer", "family", "patient");
   const id = String(formData.get("id") ?? "");
   if (!id) throw new Error("Missing appointment.");
 
@@ -88,12 +90,13 @@ export async function deleteAppointment(formData: FormData) {
   if (error) throw new Error(`Could not delete appointment: ${error.message}`);
 
   revalidatePath("/family/appointments");
-  redirect("/family/appointments");
+  revalidatePath("/mum/tasks");
+  redirect(ctx.role === "patient" ? "/mum/tasks" : "/family/appointments");
 }
 
 // Open notes — visible to everyone including Leanne.
 export async function updateAppointmentNotes(formData: FormData) {
-  await requireRole("primary_carer", "family");
+  await requireRole("primary_carer", "family", "patient");
 
   const id = String(formData.get("id") ?? "");
   const notes_before = String(formData.get("notes_before") ?? "");

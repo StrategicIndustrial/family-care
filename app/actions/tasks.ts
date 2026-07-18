@@ -23,6 +23,7 @@ export async function createTask(formData: FormData) {
   const assigned_to = assigned_to_raw ? assigned_to_raw : null;
   const visibility = (String(formData.get("visibility") ?? "family_only") || "family_only") as TaskVisibility;
   const priority = (String(formData.get("priority") ?? "medium") || "medium") as TaskPriority;
+  const appointment_id = String(formData.get("appointment_id") ?? "").trim() || null;
 
   if (!title) throw new Error("Title is required.");
   if (!VALID_TYPES.includes(task_type)) throw new Error("Invalid task type.");
@@ -32,7 +33,7 @@ export async function createTask(formData: FormData) {
   const supabase = await getSupabaseServerClient();
   const { error } = await supabase.from("tasks").insert({
     title, description, task_type, due_date, due_time,
-    assigned_to, visibility, priority,
+    assigned_to, visibility, priority, appointment_id,
     created_by: ctx.userId,
     status: assigned_to ? "claimed" : "open",
   });
@@ -42,6 +43,7 @@ export async function createTask(formData: FormData) {
   revalidatePath("/family");
   revalidatePath("/dad");
   revalidatePath("/extended");
+  revalidatePath("/mum/tasks");
   redirect("/family/tasks");
 }
 

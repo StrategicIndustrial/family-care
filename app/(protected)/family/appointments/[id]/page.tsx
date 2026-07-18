@@ -8,6 +8,7 @@ import {
   updateAppointmentDetails,
 } from "@/app/actions/appointments";
 import { DeleteAppointmentButton } from "@/components/family/DeleteAppointmentButton";
+import { requireSession } from "@/lib/auth-helpers";
 import { formatRelativeDate, formatTime } from "@/lib/format";
 import type { ApptType } from "@/lib/supabase/types";
 
@@ -26,6 +27,8 @@ export default async function AppointmentDetail({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const ctx = await requireSession();
+  const isPatient = ctx.role === "patient";
   const admin = getSupabaseServiceClient();
 
   const { data: appt } = await admin
@@ -39,11 +42,13 @@ export default async function AppointmentDetail({
 
   if (!appt) notFound();
 
+  const backHref = isPatient ? "/mum/tasks" : "/family/appointments";
+
   return (
     <main className="flex-1 pb-16 anim-fade-in">
       <header className="hdr-peach px-6 pt-12 pb-8 rounded-b-3xl">
         <div className="max-w-md mx-auto">
-          <Link href="/family/appointments" className="inline-block text-xs font-bold text-white/85 hover:text-white bg-white/15 hover:bg-white/25 px-3 py-1.5 rounded-full mb-3">
+          <Link href={backHref} className="inline-block text-xs font-bold text-white/85 hover:text-white bg-white/15 hover:bg-white/25 px-3 py-1.5 rounded-full mb-3">
             ← Back
           </Link>
           <h1 className="text-2xl font-extrabold text-white">{appt.title}</h1>
@@ -112,26 +117,28 @@ export default async function AppointmentDetail({
         </form>
 
         {/* -------------------- Family-only notes -------------------- */}
-        <details className="rounded-2xl bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)]" open>
-          <summary className="cursor-pointer px-4 py-3 select-none">
-            <span className="text-sm font-extrabold text-text-dark">🔒 Family-only notes</span>
-            <span className="block text-xs text-text-mid mt-0.5">Hidden from Leanne (Person in Care)</span>
-          </summary>
-          <form action={updateAppointmentFamilyNotes} className="space-y-3 px-4 pb-4">
-            <input type="hidden" name="id" value={appt.id} />
-            <NotesField
-              name="family_notes_before"
-              label="Before — private context"
-              defaultValue={appt.family_notes_before ?? ""}
-            />
-            <NotesField
-              name="family_notes_after"
-              label="After — private context"
-              defaultValue={appt.family_notes_after ?? ""}
-            />
-            <Button type="submit" variant="outline" size="sm">Save family notes</Button>
-          </form>
-        </details>
+        {!isPatient && (
+          <details className="rounded-2xl bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)]" open>
+            <summary className="cursor-pointer px-4 py-3 select-none">
+              <span className="text-sm font-extrabold text-text-dark">🔒 Family-only notes</span>
+              <span className="block text-xs text-text-mid mt-0.5">Hidden from Leanne (Person in Care)</span>
+            </summary>
+            <form action={updateAppointmentFamilyNotes} className="space-y-3 px-4 pb-4">
+              <input type="hidden" name="id" value={appt.id} />
+              <NotesField
+                name="family_notes_before"
+                label="Before — private context"
+                defaultValue={appt.family_notes_before ?? ""}
+              />
+              <NotesField
+                name="family_notes_after"
+                label="After — private context"
+                defaultValue={appt.family_notes_after ?? ""}
+              />
+              <Button type="submit" variant="outline" size="sm">Save family notes</Button>
+            </form>
+          </details>
+        )}
       </div>
     </main>
   );
