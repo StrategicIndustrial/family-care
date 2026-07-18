@@ -90,6 +90,41 @@ export async function markTaskDoneAction(formData: FormData) {
   revalidatePath("/extended");
 }
 
+// Take over a claimed task — sets attending_user_id to the caller without
+// changing assigned_to (the "owner of record"), and posts a visible update
+// announcing the handoff. Distinct from reassignTask: this is a lightweight
+// self-service "I've got this one" rather than an admin reassignment.
+export async function takeOverTask(taskId: string): Promise<void> {
+  const ctx = await requireRole("primary_carer", "family");
+
+  const supabase = await getSupabaseServerClient();
+  const { data: task, error: fetchError } = await supabase
+    .from("tasks")
+    .select("title, visibility, attending_user_id, attending:profiles!tasks_attending_user_id_fkey(preferred_name)")
+    .eq("id", taskId)
+    .single();
+  if (fetchError || !task) throw new Error("Task not found.");
+  if (task.attending_user_id === ctx.userId) return;
+
+  const fromName = task.attending?.preferred_name ?? "no one";
+  const body = task.visibility === "everyone"
+    ? `${ctx.preferredName} took over "${task.title}" from ${fromName}`
+    : `${ctx.preferredName} took over a task from ${fromName}`;
+
+  const [taskRes, updateRes] = await Promise.all([
+    supabase.from("tasks").update({ attending_user_id: ctx.userId }).eq("id", taskId),
+    supabase.from("updates").insert({ author_id: ctx.userId, body, is_flagged: false }),
+  ]);
+  if (taskRes.error) throw new Error(`Could not take over: ${taskRes.error.message}`);
+  if (updateRes.error) throw new Error(`Took over but couldn't post update: ${updateRes.error.message}`);
+
+  revalidatePath("/family/tasks");
+  revalidatePath(`/family/tasks/${taskId}`);
+  revalidatePath("/family");
+  revalidatePath("/dad");
+  revalidatePath("/extended");
+}
+
 // Reassign — primary_carer + family. Redirects back to /family/tasks after
 // save, since updating assignment is usually a "save and back out" interaction.
 export async function reassignTask(formData: FormData) {

@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
+import { requireRole } from "@/lib/auth-helpers";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { MarkDoneButton, ReassignSelect } from "@/components/family/TaskActions";
+import { TakeoverButton } from "@/components/family/TakeoverButton";
 import { formatRelativeDate, formatTime } from "@/lib/format";
 import { PRIORITY_COLOUR, PRIORITY_LABEL, VISIBILITY_COLOUR, VISIBILITY_LABEL } from "@/lib/task-priority";
 import type { TaskKind, TaskStatus } from "@/lib/supabase/types";
@@ -30,14 +32,16 @@ export default async function TaskDetail({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const ctx = await requireRole("primary_carer", "family");
   const admin = getSupabaseServiceClient();
 
   const [{ data: task }, { data: members }] = await Promise.all([
     admin.from("tasks").select(`
         id, title, description, task_type, due_date, due_time, status, assigned_to,
-        priority, visibility,
+        priority, visibility, attending_user_id,
         assignee:profiles!tasks_assigned_to_fkey ( id, preferred_name ),
-        creator:profiles!tasks_created_by_fkey ( preferred_name )
+        creator:profiles!tasks_created_by_fkey ( preferred_name ),
+        attending:profiles!tasks_attending_user_id_fkey ( preferred_name )
       `).eq("id", id).single(),
     admin.from("profiles").select("id, preferred_name").order("preferred_name", { ascending: true }),
   ]);
@@ -106,6 +110,12 @@ export default async function TaskDetail({
             taskId={task.id}
             members={(members ?? []).map((m) => ({ id: m.id, preferred_name: m.preferred_name }))}
             currentId={task.assigned_to}
+          />
+          <TakeoverButton
+            taskId={task.id}
+            attendingUserId={task.attending_user_id}
+            attendingName={task.attending?.preferred_name ?? "someone"}
+            currentUserId={ctx.userId}
           />
         </Card>
 
