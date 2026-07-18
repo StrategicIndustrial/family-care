@@ -144,6 +144,157 @@ export type Database = {
           },
         ];
       };
+      appointment_calendar_events: {
+        Row: {
+          appointment_id: string;
+          created_at: string;
+          external_etag: string | null;
+          external_event_id: string;
+          id: string;
+          provider: Database["public"]["Enums"]["calendar_provider"];
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          appointment_id: string;
+          created_at?: string;
+          external_etag?: string | null;
+          external_event_id: string;
+          id?: string;
+          provider: Database["public"]["Enums"]["calendar_provider"];
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          appointment_id?: string;
+          created_at?: string;
+          external_etag?: string | null;
+          external_event_id?: string;
+          id?: string;
+          provider?: Database["public"]["Enums"]["calendar_provider"];
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "appointment_calendar_events_appointment_id_fkey";
+            columns: ["appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "appointment_calendar_events_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      calendar_connections: {
+        Row: {
+          access_token_encrypted: string | null;
+          apple_app_password_encrypted: string | null;
+          apple_username: string | null;
+          caldav_calendar_url: string | null;
+          created_at: string;
+          external_calendar_id: string | null;
+          id: string;
+          last_error: string | null;
+          provider: Database["public"]["Enums"]["calendar_provider"];
+          refresh_token_encrypted: string | null;
+          status: Database["public"]["Enums"]["calendar_connection_status"];
+          token_expires_at: string | null;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          access_token_encrypted?: string | null;
+          apple_app_password_encrypted?: string | null;
+          apple_username?: string | null;
+          caldav_calendar_url?: string | null;
+          created_at?: string;
+          external_calendar_id?: string | null;
+          id?: string;
+          last_error?: string | null;
+          provider: Database["public"]["Enums"]["calendar_provider"];
+          refresh_token_encrypted?: string | null;
+          status?: Database["public"]["Enums"]["calendar_connection_status"];
+          token_expires_at?: string | null;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          access_token_encrypted?: string | null;
+          apple_app_password_encrypted?: string | null;
+          apple_username?: string | null;
+          caldav_calendar_url?: string | null;
+          created_at?: string;
+          external_calendar_id?: string | null;
+          id?: string;
+          last_error?: string | null;
+          provider?: Database["public"]["Enums"]["calendar_provider"];
+          refresh_token_encrypted?: string | null;
+          status?: Database["public"]["Enums"]["calendar_connection_status"];
+          token_expires_at?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "calendar_connections_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      calendar_role_defaults: {
+        Row: {
+          appt_type: Database["public"]["Enums"]["appt_type"];
+          enabled: boolean;
+          role: Database["public"]["Enums"]["user_role"];
+        };
+        Insert: {
+          appt_type: Database["public"]["Enums"]["appt_type"];
+          enabled?: boolean;
+          role: Database["public"]["Enums"]["user_role"];
+        };
+        Update: {
+          appt_type?: Database["public"]["Enums"]["appt_type"];
+          enabled?: boolean;
+          role?: Database["public"]["Enums"]["user_role"];
+        };
+        Relationships: [];
+      };
+      calendar_sync_prefs: {
+        Row: {
+          appt_type: Database["public"]["Enums"]["appt_type"];
+          enabled: boolean;
+          user_id: string;
+        };
+        Insert: {
+          appt_type: Database["public"]["Enums"]["appt_type"];
+          enabled: boolean;
+          user_id: string;
+        };
+        Update: {
+          appt_type?: Database["public"]["Enums"]["appt_type"];
+          enabled?: boolean;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "calendar_sync_prefs_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       checkins: {
         Row: {
           created_at: string;
@@ -581,6 +732,8 @@ export type Database = {
         | "dental"
         | "allied_health"
         | "other";
+      calendar_connection_status: "active" | "error" | "revoked";
+      calendar_provider: "google" | "apple";
       mood_type: "great" | "okay" | "not_great";
       observation_type: "behaviour" | "symptom" | "mood";
       task_priority: "low" | "medium" | "high";
@@ -617,3 +770,9 @@ export type DocumentRow         = Database["public"]["Tables"]["documents"]["Row
 export type AiInsight           = Database["public"]["Tables"]["ai_insights"]["Row"];
 export type InviteCode          = Database["public"]["Tables"]["invite_codes"]["Row"];
 export type PushSubscription    = Database["public"]["Tables"]["push_subscriptions"]["Row"];
+export type CalendarConnection       = Database["public"]["Tables"]["calendar_connections"]["Row"];
+export type CalendarRoleDefault      = Database["public"]["Tables"]["calendar_role_defaults"]["Row"];
+export type CalendarSyncPref         = Database["public"]["Tables"]["calendar_sync_prefs"]["Row"];
+export type AppointmentCalendarEvent = Database["public"]["Tables"]["appointment_calendar_events"]["Row"];
+export type CalendarProvider         = Database["public"]["Enums"]["calendar_provider"];
+export type CalendarConnectionStatus = Database["public"]["Enums"]["calendar_connection_status"];
