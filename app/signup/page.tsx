@@ -2,10 +2,11 @@ import Link from "next/link";
 import { submitSignUp } from "./actions";
 
 const ERROR_MESSAGES: Record<string, string> = {
-  missing_fields: "Please fill in both fields.",
-  bad_code:       "That invite code isn't correct — check the code your family administrator sent you.",
-  not_found:      "We couldn't find an account with that email — ask the admin to set it up first.",
-  send_failed:    "Couldn't send the sign-in link — try again in a moment.",
+  missing_fields:  "Please fill in both fields.",
+  bad_code:        "That invite code isn't correct — check the code your family administrator sent you.",
+  not_configured:  "Sign-up isn't set up on this server yet (FAMILY_INVITE_CODE is missing) — ask your admin to check the deployment configuration.",
+  not_found:       "We couldn't find an account with that email — ask the admin to set it up first.",
+  send_failed:     "Couldn't send the sign-in link — try again in a moment.",
 };
 
 export default async function SignUpPage({

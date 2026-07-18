@@ -12,7 +12,13 @@ export async function submitSignUp(formData: FormData) {
   }
 
   const INVITE_CODE = (process.env.FAMILY_INVITE_CODE ?? "").toUpperCase();
-  if (!INVITE_CODE || code !== INVITE_CODE) {
+  if (!INVITE_CODE) {
+    // Distinct from "wrong code" — this means the env var itself is missing
+    // or not scoped to this environment in the hosting provider, not that
+    // the user typed something incorrect.
+    redirect("/signup?error=not_configured");
+  }
+  if (code !== INVITE_CODE) {
     redirect("/signup?error=bad_code");
   }
 
