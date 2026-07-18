@@ -1,8 +1,18 @@
 import Link from "next/link";
 import { createAppointment } from "@/app/actions/appointments";
 import { TimeField } from "@/components/ui/TimeField";
+import type { ApptType } from "@/lib/supabase/types";
 
 export const dynamic = "force-dynamic";
+
+const APPT_TYPE_OPTIONS: { value: ApptType; label: string }[] = [
+  { value: "gp", label: "GP" },
+  { value: "specialist", label: "Specialist" },
+  { value: "scan_test", label: "Scan/Test" },
+  { value: "dental", label: "Dental" },
+  { value: "allied_health", label: "Allied Health" },
+  { value: "other", label: "Other" },
+];
 
 export default async function NewAppointment({
   searchParams,
@@ -30,6 +40,19 @@ export default async function NewAppointment({
           <TimeField name="appointment_time" label="Time" />
           <Field name="specialist" label="Specialist" placeholder="Dr Nguyen" />
           <Field name="location" label="Location" placeholder="Hollywood Private Hospital" />
+          <div>
+            <label htmlFor="appt_type" className="block text-sm font-bold text-peach-text mb-2">Type</label>
+            <select
+              id="appt_type"
+              name="appt_type"
+              defaultValue="other"
+              className="w-full rounded-2xl border-2 border-peach-200 bg-white px-4 py-3 text-base font-semibold text-text-dark focus:outline-none focus:border-peach-500"
+            >
+              {APPT_TYPE_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
           <div>
             <label className="block text-sm font-bold text-peach-text mb-2">
               Questions to raise <span className="text-text-mid font-normal">(visible to everyone)</span>
