@@ -3,6 +3,7 @@ import { getSupabaseServiceClient } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth-helpers";
 import { MedicationForm } from "@/components/family/MedicationForm";
 import { MedicationList } from "@/components/family/MedicationList";
+import { PushSubscribeButton } from "@/components/shared/PushSubscribeButton";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,7 @@ export default async function MumMedications() {
       </header>
 
       <div className="max-w-2xl mx-auto px-4 mt-5 space-y-4">
+        <PushSubscribeButton />
         <MedicationForm />
         <MedicationList medications={medications ?? []} />
       </div>

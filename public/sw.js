@@ -71,3 +71,40 @@ self.addEventListener("fetch", (event) => {
     );
   }
 });
+
+// Medication reminders. Payload is JSON: { title, body, url }.
+self.addEventListener("push", (event) => {
+  let payload = { title: "Family Care", body: "You have a reminder.", url: "/" };
+  try {
+    if (event.data) payload = { ...payload, ...event.data.json() };
+  } catch {
+    // Non-JSON push body — fall back to the default payload above.
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      data: { url: payload.url },
+      tag: payload.tag || "medication-reminder",
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const targetUrl = event.notification.data && event.notification.data.url ? event.notification.data.url : "/";
+
+  event.waitUntil(
+    (async () => {
+      const allClients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      const existing = allClients.find((c) => new URL(c.url).pathname === targetUrl);
+      if (existing) {
+        existing.focus();
+        return;
+      }
+      await self.clients.openWindow(targetUrl);
+    })()
+  );
+});
