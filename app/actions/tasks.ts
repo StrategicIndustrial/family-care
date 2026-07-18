@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { requireRole, requireSession } from "@/lib/auth-helpers";
+import { syncSourceToCalendars } from "@/lib/calendar/push";
 import type { TaskKind, TaskPriority, TaskVisibility } from "@/lib/supabase/types";
 
 const VALID_TYPES: TaskKind[] = ["visit", "shopping", "transport", "appointment", "other"];
@@ -24,6 +25,7 @@ export async function createTask(formData: FormData) {
   const visibility = (String(formData.get("visibility") ?? "family_only") || "family_only") as TaskVisibility;
   const priority = (String(formData.get("priority") ?? "medium") || "medium") as TaskPriority;
   const appointment_id = String(formData.get("appointment_id") ?? "").trim() || null;
+  const push_to_calendar = formData.get("push_to_calendar") === "on";
 
   if (!title) throw new Error("Title is required.");
   if (!VALID_TYPES.includes(task_type)) throw new Error("Invalid task type.");
@@ -31,13 +33,19 @@ export async function createTask(formData: FormData) {
   if (!VALID_PRIORITY.includes(priority)) throw new Error("Invalid priority.");
 
   const supabase = await getSupabaseServerClient();
-  const { error } = await supabase.from("tasks").insert({
-    title, description, task_type, due_date, due_time,
-    assigned_to, visibility, priority, appointment_id,
-    created_by: ctx.userId,
-    status: assigned_to ? "claimed" : "open",
-  });
-  if (error) throw new Error(`Could not create task: ${error.message}`);
+  const { data, error } = await supabase
+    .from("tasks")
+    .insert({
+      title, description, task_type, due_date, due_time,
+      assigned_to, visibility, priority, appointment_id, push_to_calendar,
+      created_by: ctx.userId,
+      status: assigned_to ? "claimed" : "open",
+    })
+    .select("id")
+    .single();
+  if (error || !data) throw new Error(`Could not create task: ${error?.message}`);
+
+  if (push_to_calendar) await syncSourceToCalendars("task", data.id, "create");
 
   revalidatePath("/family/tasks");
   revalidatePath("/family");
@@ -125,6 +133,27 @@ export async function takeOverTask(taskId: string): Promise<void> {
   revalidatePath("/family");
   revalidatePath("/dad");
   revalidatePath("/extended");
+}
+
+// Toggle "send to my calendar" on an existing task — the assignee or a
+// privileged role. Only meaningful once the assignee has a Google/Apple
+// connection, gated in the UI rather than here.
+export async function setTaskPushToCalendar(formData: FormData): Promise<void> {
+  const ctx = await requireSession();
+  const taskId = String(formData.get("task_id") ?? "");
+  const enabled = String(formData.get("enabled") ?? "") === "true";
+  if (!taskId) throw new Error("Missing task.");
+
+  const supabase = await getSupabaseServerClient();
+  let query = supabase.from("tasks").update({ push_to_calendar: enabled }).eq("id", taskId);
+  if (ctx.role !== "primary_carer" && ctx.role !== "family") {
+    query = query.eq("assigned_to", ctx.userId);
+  }
+  const { error } = await query;
+  if (error) throw new Error(`Could not update: ${error.message}`);
+
+  await syncSourceToCalendars("task", taskId, enabled ? "create" : "delete");
+  revalidatePath(`/family/tasks/${taskId}`);
 }
 
 // Reassign — primary_carer + family. Redirects back to /family/tasks after

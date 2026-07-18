@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
+import { requireSession } from "@/lib/auth-helpers";
 import { createTask } from "@/app/actions/tasks";
 import { TimeField } from "@/components/ui/TimeField";
 
@@ -18,6 +19,7 @@ const PRIORITY_OPTIONS = [
 ] as const;
 
 export default async function NewTaskPage() {
+  await requireSession();
   const admin = getSupabaseServiceClient();
   const { data: members } = await admin
     .from("profiles")
@@ -58,6 +60,11 @@ export default async function NewTaskPage() {
 
           <Field name="due_date" label="Date" type="date" />
           <TimeField name="due_time" label="Time" />
+
+          <label className="flex items-center gap-2 text-sm font-semibold text-text-dark">
+            <input type="checkbox" name="push_to_calendar" className="accent-sage-500" />
+            Send to the assignee's calendar (if they've connected Google or Apple)
+          </label>
 
           <div>
             <label className="block text-sm font-bold text-sage-text mb-2">Assign To</label>
