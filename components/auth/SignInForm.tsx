@@ -29,7 +29,15 @@ export function SignInForm() {
     });
 
     if (error) {
-      setStatus({ kind: "error", message: "Something went wrong — try again in a moment." });
+      // Surface the real Supabase error rather than a generic message —
+      // this is the only client-side signal we get when something like
+      // rate-limiting, a misconfigured Supabase URL, or a CORS/site-URL
+      // mismatch is the actual cause.
+      console.error("signInWithOtp failed:", error);
+      setStatus({
+        kind: "error",
+        message: `${error.message || "Something went wrong"} (status: ${error.status ?? "unknown"})`,
+      });
     } else {
       setStatus({ kind: "sent", email: trimmed });
     }
