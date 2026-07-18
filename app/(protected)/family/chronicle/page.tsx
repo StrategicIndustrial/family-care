@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth-helpers";
 import { ChronicleComposer } from "@/components/family/ChronicleComposer";
 import { ChronicleInsights } from "@/components/family/ChronicleInsights";
 import { AttachmentButton } from "@/components/family/AttachmentButton";
+import { ExportButton } from "@/components/family/ExportButton";
 import { clsx } from "@/lib/cx";
 import { formatShortDate } from "@/lib/format";
 
@@ -125,9 +126,12 @@ export default async function ChroniclePage({
   return (
     <main className="flex-1 pb-28 anim-fade-in">
       <header className="px-6 pt-12 pb-8 rounded-b-3xl" style={{ background: "linear-gradient(135deg, #5da882 0%, #7b5ea7 100%)" }}>
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-2xl font-extrabold text-white">Chronicle</h1>
-          <p className="text-sm text-white/85 mt-1">Clinical timeline</p>
+        <div className="max-w-2xl mx-auto flex items-end justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-extrabold text-white">Chronicle</h1>
+            <p className="text-sm text-white/85 mt-1">Clinical timeline</p>
+          </div>
+          <ExportButton />
         </div>
       </header>
 
