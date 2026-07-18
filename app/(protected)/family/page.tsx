@@ -182,6 +182,20 @@ export default async function FamilyHome() {
           )}
         </Section>
 
+        {/* -------------------- Observations link -------------------- */}
+        <Section title="Carer log">
+          <Link
+            href="/family/observations"
+            className="rounded-2xl bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.06)] flex items-center justify-between gap-3"
+          >
+            <div>
+              <div className="font-extrabold text-text-dark">Observations</div>
+              <div className="text-xs text-text-mid mt-0.5">Log behaviour, symptoms, mood</div>
+            </div>
+            <span className="text-text-mid">›</span>
+          </Link>
+        </Section>
+
         {/* -------------------- Recent updates -------------------- */}
         <Section title="Recent updates" link={{ href: "/family/updates", label: "All ›" }}>
           {(updates?.length ?? 0) === 0 ? (
