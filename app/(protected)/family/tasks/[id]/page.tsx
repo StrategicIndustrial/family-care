@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { MarkDoneButton, ReassignSelect } from "@/components/family/TaskActions";
 import { TakeoverButton } from "@/components/family/TakeoverButton";
 import { TaskCalendarToggle } from "@/components/family/TaskCalendarToggle";
+import { HideFromPicker } from "@/components/family/HideFromPicker";
 import { formatRelativeDate, formatTime } from "@/lib/format";
 import { PRIORITY_COLOUR, PRIORITY_LABEL, VISIBILITY_COLOUR, VISIBILITY_LABEL } from "@/lib/task-priority";
 import type { TaskKind, TaskStatus } from "@/lib/supabase/types";
@@ -36,7 +37,7 @@ export default async function TaskDetail({
   const ctx = await requireRole("primary_carer", "family");
   const admin = getSupabaseServiceClient();
 
-  const [{ data: task }, { data: members }] = await Promise.all([
+  const [{ data: task }, { data: members }, { data: hiddenFrom }] = await Promise.all([
     admin.from("tasks").select(`
         id, title, description, task_type, due_date, due_time, status, assigned_to,
         priority, visibility, attending_user_id, push_to_calendar,
@@ -45,6 +46,7 @@ export default async function TaskDetail({
         attending:profiles!tasks_attending_user_id_fkey ( preferred_name )
       `).eq("id", id).single(),
     admin.from("profiles").select("id, preferred_name").order("preferred_name", { ascending: true }),
+    admin.from("task_hidden_from").select("user_id").eq("task_id", id),
   ]);
 
   if (!task) notFound();
@@ -122,6 +124,16 @@ export default async function TaskDetail({
 
         <Card>
           <TaskCalendarToggle taskId={task.id} initial={task.push_to_calendar} />
+        </Card>
+
+        <Card className="space-y-2">
+          <div className="text-sm font-extrabold text-text-dark">Hide from specific people</div>
+          <p className="text-xs text-text-mid">Removes visibility for just these people, on top of the visibility setting above.</p>
+          <HideFromPicker
+            taskId={task.id}
+            members={(members ?? []).map((m) => ({ id: m.id, preferred_name: m.preferred_name }))}
+            initialHidden={(hiddenFrom ?? []).map((h) => h.user_id)}
+          />
         </Card>
 
         <Card accent={task.status === "done" ? "sage" : undefined} className="text-center">

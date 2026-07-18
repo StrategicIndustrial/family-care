@@ -689,6 +689,27 @@ export type Database = {
           },
         ];
       };
+      task_hidden_from: {
+        Row: { task_id: string; user_id: string };
+        Insert: { task_id: string; user_id: string };
+        Update: { task_id?: string; user_id?: string };
+        Relationships: [
+          {
+            foreignKeyName: "task_hidden_from_task_id_fkey";
+            columns: ["task_id"];
+            isOneToOne: false;
+            referencedRelation: "tasks";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "task_hidden_from_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       updates: {
         Row: {
           author_id: string;

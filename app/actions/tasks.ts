@@ -135,6 +135,30 @@ export async function takeOverTask(taskId: string): Promise<void> {
   revalidatePath("/extended");
 }
 
+// Replaces the full "hide from" list for a task in one go — simpler
+// than diffing add/remove given the UI is a small multi-select checkbox
+// group, not an incremental picker.
+export async function setTaskHiddenFrom(formData: FormData): Promise<void> {
+  await requireRole("primary_carer", "family");
+  const taskId = String(formData.get("task_id") ?? "");
+  if (!taskId) throw new Error("Missing task.");
+  const userIds = formData.getAll("hidden_from").map(String).filter(Boolean);
+
+  const supabase = await getSupabaseServerClient();
+  const { error: deleteError } = await supabase.from("task_hidden_from").delete().eq("task_id", taskId);
+  if (deleteError) throw new Error(`Could not update: ${deleteError.message}`);
+
+  if (userIds.length > 0) {
+    const { error: insertError } = await supabase
+      .from("task_hidden_from")
+      .insert(userIds.map((user_id) => ({ task_id: taskId, user_id })));
+    if (insertError) throw new Error(`Could not update: ${insertError.message}`);
+  }
+
+  revalidatePath(`/family/tasks/${taskId}`);
+  revalidatePath("/family/tasks");
+}
+
 // Toggle "send to my calendar" on an existing task — the assignee or a
 // privileged role. Only meaningful once the assignee has a Google/Apple
 // connection, gated in the UI rather than here.
