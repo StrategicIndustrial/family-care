@@ -5,14 +5,14 @@ import { clsx } from "@/lib/cx";
 
 export const dynamic = "force-dynamic";
 
-type View = "calendar" | "list";
+type View = "calendar" | "list" | "day";
 
 export default async function FamilyAppointments({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: View; history?: string; month?: string }>;
+  searchParams: Promise<{ view?: View; history?: string; month?: string; date?: string }>;
 }) {
-  const { view = "calendar", history, month: monthParam } = await searchParams;
+  const { view = "calendar", history, month: monthParam, date: dateParam } = await searchParams;
 
   const today = isoLocalDate(new Date());
   const showHistory = view === "list" && history === "1";
@@ -110,10 +110,11 @@ export default async function FamilyAppointments({
             {/* Day cells */}
             <div className="grid grid-cols-7">
               {days.map((day, i) => (
-                <div
+                <Link
                   key={i}
+                  href={`/family/appointments?view=day&date=${day.date}`}
                   className={clsx(
-                    "text-center py-1.5 px-0.5 rounded-lg",
+                    "block text-center py-1.5 px-0.5 rounded-lg hover:bg-cream",
                     day.isToday && "bg-peach-100",
                   )}
                 >
@@ -128,7 +129,7 @@ export default async function FamilyAppointments({
                   {day.hasAppt && (
                     <div className="w-[5px] h-[5px] rounded-full bg-peach-500 mx-auto mt-[3px]" />
                   )}
-                </div>
+                </Link>
               ))}
             </div>
           </div>
@@ -175,6 +176,98 @@ export default async function FamilyAppointments({
           >
             + Add Appointment
           </Link>
+        </div>
+      </main>
+    );
+  }
+
+  if (view === "day") {
+    const day = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : today;
+    const monthParam2 = day.slice(0, 7);
+
+    const [{ data: dayAppts }, { data: dayTasks }] = await Promise.all([
+      admin
+        .from("appointments")
+        .select("id, title, appointment_date, appointment_time, specialist, location")
+        .eq("appointment_date", day)
+        .order("appointment_time", { ascending: true, nullsFirst: false }),
+      admin
+        .from("tasks")
+        .select("id, title, task_type, due_time, status, assignee:profiles!tasks_assigned_to_fkey(preferred_name)")
+        .eq("due_date", day)
+        .order("due_time", { ascending: true, nullsFirst: false }),
+    ]);
+
+    const dayLabel = new Date(`${day}T00:00:00`).toLocaleDateString("en-AU", {
+      weekday: "long", day: "numeric", month: "long",
+    });
+
+    return (
+      <main className="flex-1 pb-28 anim-fade-in">
+        <header className="hdr-peach px-6 pt-12 pb-5 rounded-b-3xl">
+          <div className="max-w-2xl mx-auto flex items-center gap-3">
+            <Link
+              href={`/family/appointments?view=calendar&month=${monthParam2}`}
+              className="w-8 h-8 rounded-full bg-white/25 border-none flex items-center justify-center shrink-0"
+              aria-label="Back to calendar"
+            >
+              <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
+                <path d="M8 2L2 8l6 6" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </Link>
+            <h1 className="text-xl font-extrabold text-white">{dayLabel}</h1>
+          </div>
+        </header>
+
+        <div className="max-w-2xl mx-auto px-4 mt-4 space-y-4">
+          <Link
+            href={`/family/appointments/new?date=${day}`}
+            className="inline-block px-4 py-2 cta-peach rounded-xl text-white text-sm font-extrabold"
+          >
+            + Add Appointment
+          </Link>
+
+          <div className="space-y-2">
+            <h2 className="text-sm font-extrabold text-text-dark px-1">Appointments</h2>
+            {(dayAppts?.length ?? 0) === 0 ? (
+              <div className="rounded-2xl bg-white p-4 text-center shadow-[0_2px_10px_rgba(0,0,0,0.06)]">
+                <p className="text-sm text-text-mid">No appointments on this day.</p>
+              </div>
+            ) : (
+              dayAppts!.map((a) => (
+                <Link key={a.id} href={`/family/appointments/${a.id}`} className="block">
+                  <AppointmentRow
+                    title={a.title}
+                    date={a.appointment_date}
+                    time={a.appointment_time}
+                    specialist={a.specialist}
+                    location={a.location}
+                  />
+                </Link>
+              ))
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-sm font-extrabold text-text-dark px-1">Tasks due</h2>
+            {(dayTasks?.length ?? 0) === 0 ? (
+              <div className="rounded-2xl bg-white p-4 text-center shadow-[0_2px_10px_rgba(0,0,0,0.06)]">
+                <p className="text-sm text-text-mid">No tasks due this day.</p>
+              </div>
+            ) : (
+              dayTasks!.map((t) => (
+                <Link key={t.id} href={`/family/tasks/${t.id}`} className="block">
+                  <div className="rounded-2xl bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.06)] flex items-center justify-between gap-3">
+                    <div>
+                      <div className="font-extrabold text-text-dark">{t.title}</div>
+                      <div className="text-xs text-text-mid mt-0.5">{t.assignee?.preferred_name ?? "Unassigned"}</div>
+                    </div>
+                    {t.due_time && <span className="text-xs text-text-mid font-semibold">{t.due_time}</span>}
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
         </div>
       </main>
     );
@@ -264,6 +357,7 @@ export default async function FamilyAppointments({
 
 type CalDay = {
   label: string;
+  date: string;
   isCurrentMonth: boolean;
   isToday: boolean;
   hasAppt: boolean;
@@ -293,13 +387,13 @@ function buildCalendarGrid(
     const prevMonth = month === 0 ? 11 : month - 1;
     const prevYear = month === 0 ? year - 1 : year;
     const dateStr = `${prevYear}-${String(prevMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-    days.push({ label: String(d), isCurrentMonth: false, isToday: dateStr === today, hasAppt: apptDates.has(dateStr) });
+    days.push({ label: String(d), date: dateStr, isCurrentMonth: false, isToday: dateStr === today, hasAppt: apptDates.has(dateStr) });
   }
 
   // Current month days
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-    days.push({ label: String(d), isCurrentMonth: true, isToday: dateStr === today, hasAppt: apptDates.has(dateStr) });
+    days.push({ label: String(d), date: dateStr, isCurrentMonth: true, isToday: dateStr === today, hasAppt: apptDates.has(dateStr) });
   }
 
   // Trailing days to complete last row (to multiple of 7)
@@ -308,7 +402,7 @@ function buildCalendarGrid(
     const nextMonth = month === 11 ? 0 : month + 1;
     const nextYear = month === 11 ? year + 1 : year;
     const dateStr = `${nextYear}-${String(nextMonth + 1).padStart(2, "0")}-${String(trailing).padStart(2, "0")}`;
-    days.push({ label: String(trailing), isCurrentMonth: false, isToday: dateStr === today, hasAppt: apptDates.has(dateStr) });
+    days.push({ label: String(trailing), date: dateStr, isCurrentMonth: false, isToday: dateStr === today, hasAppt: apptDates.has(dateStr) });
     trailing++;
   }
 
