@@ -189,18 +189,30 @@ export default async function DadHome() {
           <UpdateComposer />
         </Section>
 
-        {/* -------------------- Observations link -------------------- */}
+        {/* -------------------- Carer log links -------------------- */}
         <Section title="Carer log">
-          <Link
-            href="/family/observations"
-            className="rounded-2xl bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.06)] flex items-center justify-between gap-3"
-          >
-            <div>
-              <div className="font-extrabold text-text-dark">Observations</div>
-              <div className="text-xs text-text-mid mt-0.5">Log behaviour, symptoms, mood</div>
-            </div>
-            <span className="text-text-mid">›</span>
-          </Link>
+          <div className="space-y-2">
+            <Link
+              href="/family/observations"
+              className="rounded-2xl bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.06)] flex items-center justify-between gap-3"
+            >
+              <div>
+                <div className="font-extrabold text-text-dark">Observations</div>
+                <div className="text-xs text-text-mid mt-0.5">Log behaviour, symptoms, mood</div>
+              </div>
+              <span className="text-text-mid">›</span>
+            </Link>
+            <Link
+              href="/family/chronicle"
+              className="rounded-2xl bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.06)] flex items-center justify-between gap-3"
+            >
+              <div>
+                <div className="font-extrabold text-text-dark">Chronicle</div>
+                <div className="text-xs text-text-mid mt-0.5">Clinical timeline & GP notes</div>
+              </div>
+              <span className="text-text-mid">›</span>
+            </Link>
+          </div>
         </Section>
 
         {/* -------------------- Feed -------------------- */}
