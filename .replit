@@ -1,0 +1,17 @@
+modules = ["nodejs-20"]
+run = "npm run dev"
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+run = ["sh", "-c", "npm run build && npm run start"]
+deploymentTarget = "autoscale"
+
+[[ports]]
+localPort = 3001
+externalPort = 80
+
+# This is a Next.js (App Router) application — NOT Vite, NOT a separate
+# Express/Node backend. Do not migrate, rewrite, or "improve" the framework.
+# npm run dev / npm run start are already pinned to port 3001 in package.json.
