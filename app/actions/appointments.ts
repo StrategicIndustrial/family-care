@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth-helpers";
-import { syncAppointmentToCalendars } from "@/lib/calendar/push";
+import { syncSourceToCalendars } from "@/lib/calendar/push";
 import type { ApptType } from "@/lib/supabase/types";
 
 const VALID_APPT_TYPES: ApptType[] = ["gp", "specialist", "scan_test", "other"];
@@ -36,7 +36,7 @@ export async function createAppointment(formData: FormData) {
     .single();
   if (error || !data) throw new Error(`Could not create appointment: ${error?.message}`);
 
-  await syncAppointmentToCalendars(data.id, "create");
+  await syncSourceToCalendars("appointment", data.id, "create");
 
   revalidatePath("/family/appointments");
   redirect("/family/appointments");
@@ -67,7 +67,7 @@ export async function updateAppointmentDetails(formData: FormData) {
     .eq("id", id);
   if (error) throw new Error(`Could not update appointment: ${error.message}`);
 
-  await syncAppointmentToCalendars(id, "update");
+  await syncSourceToCalendars("appointment", id, "update");
 
   revalidatePath(`/family/appointments/${id}`);
   revalidatePath("/family/appointments");
@@ -81,7 +81,7 @@ export async function deleteAppointment(formData: FormData) {
   // Sync first, while the row (and any pushed-calendar mappings) still
   // exist, so each connected calendar's event actually gets removed
   // rather than orphaned.
-  await syncAppointmentToCalendars(id, "delete");
+  await syncSourceToCalendars("appointment", id, "delete");
 
   const supabase = await getSupabaseServerClient();
   const { error } = await supabase.from("appointments").delete().eq("id", id);
@@ -111,7 +111,7 @@ export async function updateAppointmentNotes(formData: FormData) {
     .eq("id", id);
   if (error) throw new Error(`Could not save notes: ${error.message}`);
 
-  await syncAppointmentToCalendars(id, "update");
+  await syncSourceToCalendars("appointment", id, "update");
 
   revalidatePath(`/family/appointments/${id}`);
   revalidatePath("/family/appointments");

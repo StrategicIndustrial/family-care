@@ -9,8 +9,9 @@ export type CalendarEvent = {
   title: string;
   description: string;
   location: string | null;
-  date: string; // YYYY-MM-DD
-  time: string | null; // HH:MM:SS, null = all-day
+  date: string; // YYYY-MM-DD — first occurrence's date when recurring
+  time: string | null; // HH:MM or HH:MM:SS, null = all-day
+  recurring?: boolean; // daily recurrence (medication reminders)
 };
 
 function getClientCredentials() {
@@ -74,16 +75,19 @@ function toGoogleEventBody(event: CalendarEvent, deepLink: string) {
   const description = `${event.description}\n\nOpen in Family Care: ${deepLink}`;
   const base = { summary: event.title, location: event.location ?? undefined, description };
 
+  const recurrence = event.recurring ? { recurrence: ["RRULE:FREQ=DAILY"] } : {};
+
   if (event.time) {
     const start = new Date(`${event.date}T${event.time}`);
     const end = new Date(start.getTime() + DEFAULT_DURATION_MS);
     return {
       ...base,
+      ...recurrence,
       start: { dateTime: start.toISOString(), timeZone: "Australia/Perth" },
       end: { dateTime: end.toISOString(), timeZone: "Australia/Perth" },
     };
   }
-  return { ...base, start: { date: event.date }, end: { date: event.date } };
+  return { ...base, ...recurrence, start: { date: event.date }, end: { date: event.date } };
 }
 
 async function callEvents(

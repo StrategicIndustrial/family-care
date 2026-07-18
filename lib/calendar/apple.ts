@@ -70,6 +70,8 @@ function buildVEvent(uid: string, event: CalendarEvent, deepLink: string): strin
     lines.push(`DTSTART;VALUE=DATE:${toICalDate(event.date, null)}`);
   }
 
+  if (event.recurring) lines.push("RRULE:FREQ=DAILY");
+
   lines.push(`SUMMARY:${escapeICalText(event.title)}`);
   if (event.location) lines.push(`LOCATION:${escapeICalText(event.location)}`);
   lines.push(`DESCRIPTION:${description}`);

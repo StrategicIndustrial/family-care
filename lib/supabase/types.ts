@@ -144,47 +144,43 @@ export type Database = {
           },
         ];
       };
-      appointment_calendar_events: {
+      calendar_pushed_events: {
         Row: {
-          appointment_id: string;
           created_at: string;
           external_etag: string | null;
           external_event_id: string;
           id: string;
           provider: Database["public"]["Enums"]["calendar_provider"];
+          source_id: string;
+          source_type: string;
           updated_at: string;
           user_id: string;
         };
         Insert: {
-          appointment_id: string;
           created_at?: string;
           external_etag?: string | null;
           external_event_id: string;
           id?: string;
           provider: Database["public"]["Enums"]["calendar_provider"];
+          source_id: string;
+          source_type: string;
           updated_at?: string;
           user_id: string;
         };
         Update: {
-          appointment_id?: string;
           created_at?: string;
           external_etag?: string | null;
           external_event_id?: string;
           id?: string;
           provider?: Database["public"]["Enums"]["calendar_provider"];
+          source_id?: string;
+          source_type?: string;
           updated_at?: string;
           user_id?: string;
         };
         Relationships: [
           {
-            foreignKeyName: "appointment_calendar_events_appointment_id_fkey";
-            columns: ["appointment_id"];
-            isOneToOne: false;
-            referencedRelation: "appointments";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "appointment_calendar_events_user_id_fkey";
+            foreignKeyName: "calendar_pushed_events_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
@@ -621,6 +617,7 @@ export type Database = {
           due_time: string | null;
           id: string;
           priority: Database["public"]["Enums"]["task_priority"];
+          push_to_calendar: boolean;
           status: Database["public"]["Enums"]["task_status"];
           task_type: Database["public"]["Enums"]["task_type"];
           title: string;
@@ -636,6 +633,7 @@ export type Database = {
           due_time?: string | null;
           id?: string;
           priority?: Database["public"]["Enums"]["task_priority"];
+          push_to_calendar?: boolean;
           status?: Database["public"]["Enums"]["task_status"];
           task_type: Database["public"]["Enums"]["task_type"];
           title: string;
@@ -651,6 +649,7 @@ export type Database = {
           due_time?: string | null;
           id?: string;
           priority?: Database["public"]["Enums"]["task_priority"];
+          push_to_calendar?: boolean;
           status?: Database["public"]["Enums"]["task_status"];
           task_type?: Database["public"]["Enums"]["task_type"];
           title?: string;
@@ -767,6 +766,6 @@ export type PushSubscription    = Database["public"]["Tables"]["push_subscriptio
 export type CalendarConnection       = Database["public"]["Tables"]["calendar_connections"]["Row"];
 export type CalendarRoleDefault      = Database["public"]["Tables"]["calendar_role_defaults"]["Row"];
 export type CalendarSyncPref         = Database["public"]["Tables"]["calendar_sync_prefs"]["Row"];
-export type AppointmentCalendarEvent = Database["public"]["Tables"]["appointment_calendar_events"]["Row"];
+export type CalendarPushedEvent = Database["public"]["Tables"]["calendar_pushed_events"]["Row"];
 export type CalendarProvider         = Database["public"]["Enums"]["calendar_provider"];
 export type CalendarConnectionStatus = Database["public"]["Enums"]["calendar_connection_status"];
