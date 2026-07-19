@@ -8,9 +8,10 @@ type Tab = { href: string; label: string; icon: string };
 
 type Props = {
   homeHref: "/family" | "/dad";
+  hasUnreadChat?: boolean;
 };
 
-export function BottomTabs({ homeHref }: Props) {
+export function BottomTabs({ homeHref, hasUnreadChat }: Props) {
   const pathname = usePathname();
 
   const TABS: Tab[] = [
@@ -18,7 +19,8 @@ export function BottomTabs({ homeHref }: Props) {
     { href: "/family/tasks",        label: "Tasks",        icon: "✅" },
     { href: "/family/appointments", label: "Calendar",     icon: "🗓️" },
     { href: "/family/medical",      label: "Medical",      icon: "⚕️" },
-    { href: "/family/updates",      label: "Updates",      icon: "💬" },
+    { href: "/family/chat",         label: "Chat",         icon: "💬" },
+    { href: "/family/updates",      label: "Updates",      icon: "📣" },
     { href: "/family/profile",      label: "Profile",      icon: "👤" },
   ];
 
@@ -29,10 +31,10 @@ export function BottomTabs({ homeHref }: Props) {
                  shadow-[0_8px_32px_rgba(0,0,0,0.15)]
                  px-2 py-2
                  pb-[max(0.5rem,env(safe-area-inset-bottom))]"
-      style={{ bottom: 24, width: "min(400px, calc(100% - 24px))" }}
+      style={{ bottom: 24, width: "min(440px, calc(100% - 24px))" }}
       aria-label="Primary"
     >
-      <ul className="grid grid-cols-6">
+      <ul className="grid grid-cols-7">
         {TABS.map((tab) => {
           const isHome = tab.href === "/family" || tab.href === "/dad";
           const active = isHome ? pathname === tab.href : pathname.startsWith(tab.href);
@@ -41,12 +43,20 @@ export function BottomTabs({ homeHref }: Props) {
               <Link
                 href={tab.href}
                 className={clsx(
-                  "flex flex-col items-center gap-0.5 py-2 rounded-2xl",
+                  "relative flex flex-col items-center gap-0.5 py-2 rounded-2xl",
                   active ? "text-sage-600 font-bold" : "text-text-mid hover:text-text-dark",
                 )}
               >
-                <span aria-hidden="true" className="text-lg leading-none">{tab.icon}</span>
-                <span className="text-[9px] font-bold uppercase tracking-wide">{tab.label}</span>
+                <span className="relative">
+                  <span aria-hidden="true" className="text-base leading-none">{tab.icon}</span>
+                  {tab.href === "/family/chat" && hasUnreadChat && (
+                    <span
+                      className="absolute -top-0.5 -right-1 h-2 w-2 rounded-full bg-peach-500"
+                      aria-label="Unread messages"
+                    />
+                  )}
+                </span>
+                <span className="text-[8.5px] font-bold uppercase tracking-wide">{tab.label}</span>
               </Link>
             </li>
           );

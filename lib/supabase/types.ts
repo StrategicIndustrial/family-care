@@ -549,6 +549,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null;
+          chat_last_read_at: string | null;
           created_at: string;
           full_name: string;
           id: string;
@@ -561,6 +562,7 @@ export type Database = {
         };
         Insert: {
           avatar_url?: string | null;
+          chat_last_read_at?: string | null;
           created_at?: string;
           full_name: string;
           id: string;
@@ -573,6 +575,7 @@ export type Database = {
         };
         Update: {
           avatar_url?: string | null;
+          chat_last_read_at?: string | null;
           created_at?: string;
           full_name?: string;
           id?: string;
@@ -584,6 +587,35 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role"];
         };
         Relationships: [];
+      };
+      messages: {
+        Row: {
+          author_id: string;
+          body: string;
+          created_at: string;
+          id: string;
+        };
+        Insert: {
+          author_id: string;
+          body: string;
+          created_at?: string;
+          id?: string;
+        };
+        Update: {
+          author_id?: string;
+          body?: string;
+          created_at?: string;
+          id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "messages_author_id_fkey";
+            columns: ["author_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       push_subscriptions: {
         Row: {

@@ -27,6 +27,8 @@ export function allowedRolesForPath(pathname: string): UserRole[] | null {
   // her too while the bare list stays carer-only.
   if (pathname === "/family/appointments") return ["primary_carer", "family"];
   if (pathname.startsWith("/family/appointments/")) return ["patient", "primary_carer", "family"];
+  // Chat is the one shared thread every role is a member of.
+  if (pathname.startsWith("/family/chat")) return ["patient", "primary_carer", "family", "extended"];
   if (pathname.startsWith("/family")) return ["primary_carer", "family"];
   if (pathname.startsWith("/extended")) return ["extended"];
   return null;
