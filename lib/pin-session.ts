@@ -4,9 +4,11 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 const UNLOCK_COOKIE   = "pin_unlocked";
 const ATTEMPTS_COOKIE = "pin_attempts";
 
-// 10-minute sliding inactivity window — brief §7.
-export const PIN_IDLE_MS  = 10 * 60 * 1000;
-const UNLOCK_MAX_AGE      = 10 * 60;        // seconds
+// Once unlocked on a device, stay unlocked — no idle timer. The only way
+// back to a re-auth screen is the cookie itself going away (cleared
+// storage, new device) or the underlying Supabase session becoming
+// invalid, both of which fall through to the normal email-OTP sign-in.
+const UNLOCK_MAX_AGE      = 400 * 24 * 60 * 60; // seconds — matches the Supabase session cookie ceiling
 const ATTEMPTS_MAX_AGE    = 60 * 60;        // 1h, plenty for a person stuck typing
 export const MAX_PIN_ATTEMPTS = 5;
 
@@ -58,21 +60,6 @@ export async function isPinUnlocked(userId: string): Promise<boolean> {
 export async function clearPinUnlocked(): Promise<void> {
   const jar = await cookies();
   jar.delete(UNLOCK_COOKIE);
-}
-
-// Sliding window: each request through the proxy can re-set the cookie so a
-// user actively using the app stays unlocked. We do this in proxy.ts.
-export function refreshUnlockCookieOnResponse(
-  response: { cookies: { set: (n: string, v: string, opts: Record<string, unknown>) => void } },
-  currentCookieValue: string,
-): void {
-  response.cookies.set(UNLOCK_COOKIE, currentCookieValue, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: UNLOCK_MAX_AGE,
-  });
 }
 
 // -------------------- attempts counter --------------------

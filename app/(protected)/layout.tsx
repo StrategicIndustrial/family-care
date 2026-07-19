@@ -4,7 +4,6 @@ import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { ROLE_HOME, allowedRolesForPath } from "@/lib/roles";
 import { isPinUnlocked } from "@/lib/pin-session";
 import { PinScreen } from "@/components/auth/PinScreen";
-import { IdleWatcher } from "@/components/auth/IdleWatcher";
 
 // Server-side guard for every route under (protected):
 //   1. Require a Supabase session — else bounce to /
@@ -55,10 +54,5 @@ export default async function ProtectedLayout({
     }
   }
 
-  return (
-    <>
-      {children}
-      {pinRequired && <IdleWatcher />}
-    </>
-  );
+  return <>{children}</>;
 }

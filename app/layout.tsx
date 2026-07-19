@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Nunito } from "next/font/google";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
+import { PersistentStorageRequest } from "@/components/pwa/PersistentStorageRequest";
 import "./globals.css";
 
 const nunito = Nunito({
@@ -49,6 +50,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-cream">
         {children}
         <ServiceWorkerRegister />
+        <PersistentStorageRequest />
       </body>
     </html>
   );
